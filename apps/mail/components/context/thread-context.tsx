@@ -29,8 +29,8 @@ import { useThreads } from "@/hooks/use-threads";
 import { modifyLabels } from "@/actions/mail";
 import { useStats } from "@/hooks/use-stats";
 import { useMail } from "../mail/use-mail";
+import { type ReactNode } from "react";
 import { LABELS } from "@/lib/utils";
-import { ReactNode } from "react";
 import { toast } from "sonner";
 
 interface EmailAction {
