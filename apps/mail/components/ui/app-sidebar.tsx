@@ -7,6 +7,7 @@ import { navigationConfig } from "@/config/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useHotKey } from "@/hooks/use-hot-key";
 import React, { useMemo, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useStats } from "@/hooks/use-stats";
@@ -131,6 +132,10 @@ function ComposeButton() {
   const isMobile = useIsMobile();
   const router = useRouter();
   const t = useTranslations();
+
+  // TODO: open compose modal instead of redirecting
+  useHotKey("c", () => router.push("/mail/create"));
+
   return (
     <Button
       onClick={() => router.push("/mail/create")}
