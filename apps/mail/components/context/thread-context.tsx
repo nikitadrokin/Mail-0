@@ -57,6 +57,140 @@ const noopAction = () => async () => {
   console.log("Action will be implemented later");
 };
 
+// const handleArchive = () => async () => {
+//     try {
+//         const targetId = threadId ? `thread:${threadId}` : emailId;
+//         console.log(`🗃️ EmailContextMenu: Archiving ${threadId ? 'thread' : 'email'}: ${targetId}`);
+
+//         const success = await archiveMail(targetId);
+//         if (success) {
+//             toast.success(`${threadId ? 'Email' : 'Thread'} archived`);
+//             if (refreshCallback) refreshCallback();
+//         } else {
+//             throw new Error(`Failed to archive ${threadId ? 'email' : 'thread'}`);
+//         }
+//     } catch (error) {
+//         console.error(`Error archiving ${threadId ? 'email' : 'thread'}:`, error);
+//         toast.error(`Error archiving ${threadId ? 'email' : 'thread'}`);
+//     }
+// };
+
+const handleMove =
+  ({
+    from,
+    to,
+    mail,
+    threadId,
+    emailId,
+    mutate,
+    mutateStats,
+    setMail,
+  }: {
+    from: string;
+    to: string;
+    mail?: any;
+    threadId?: string;
+    emailId?: string;
+    mutate?: () => Promise<void>;
+    mutateStats?: () => Promise<void>;
+    setMail?: (mail: any) => void;
+  }) =>
+  async () => {
+    try {
+      let targets = [];
+      if (mail.bulkSelected.length) {
+        targets = mail.bulkSelected.map((id: string) => `thread:${id}`);
+      } else {
+        targets = [threadId ? `thread:${threadId}` : emailId];
+      }
+      return toast.promise(
+        modifyLabels({
+          threadId: targets,
+          addLabels: to ? [to] : [],
+          removeLabels: from ? [from] : [],
+        }).then(async () => {
+          await mutate?.().then(() => mutateStats?.());
+          return setMail?.({ ...mail, bulkSelected: [] });
+        }),
+        {
+          loading: "Moving...",
+          success: () => "Moved",
+          error: "Error moving",
+        },
+      );
+    } catch (error) {
+      console.error(`Error moving ${threadId ? "email" : "thread"}`, error);
+    }
+  };
+
+const getActions = ({
+  isSpam,
+  isArchiveFolder,
+  isInbox,
+  isSent,
+}: {
+  isSpam: boolean;
+  isArchiveFolder: boolean;
+  isInbox: boolean;
+  isSent: boolean;
+  handleMove: (from: string, to: string) => () => Promise<void>;
+}) => {
+  if (isSpam) {
+    return [
+      {
+        id: "move-to-inbox",
+        label: "Move to Inbox",
+        icon: <Inbox className="mr-2.5 h-4 w-4" />,
+        action: handleMove({ from: LABELS.SPAM, to: LABELS.INBOX }),
+        disabled: false,
+      },
+    ];
+  }
+
+  if (isArchiveFolder || !isInbox) {
+    return [
+      {
+        id: "move-to-inbox",
+        label: "Unarchive",
+        icon: <Inbox className="mr-2.5 h-4 w-4" />,
+        action: handleMove({ from: "", to: LABELS.INBOX }),
+        disabled: false,
+      },
+    ];
+  }
+
+  if (isSent) {
+    return [
+      {
+        id: "archive",
+        label: "Archive",
+        icon: <Archive className="mr-2.5 h-4 w-4" />,
+        shortcut: "E",
+        action: handleMove({ from: LABELS.SENT, to: "" }),
+        disabled: false,
+      },
+    ];
+  }
+
+  return [
+    {
+      id: "archive",
+      label: "Archive",
+      icon: <Archive className="mr-2.5 h-4 w-4" />,
+      shortcut: "E",
+      action: handleMove({ from: LABELS.INBOX, to: "" }),
+      disabled: false,
+    },
+    {
+      id: "move-to-spam",
+      label: "Move to Spam",
+      icon: <ArchiveX className="mr-2.5 h-4 w-4" />,
+      action: handleMove({ from: LABELS.INBOX, to: LABELS.SPAM }),
+      disabled: !isInbox,
+    },
+  ];
+};
+
 export const primaryActions: EmailAction[] = [
   {
     id: "reply",

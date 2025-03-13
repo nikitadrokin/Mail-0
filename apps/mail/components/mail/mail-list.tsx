@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  ContextMenu,
+  ContextMenuLabel,
+  ContextMenuItem,
+  ContextMenuContent,
+  ContextMenuTrigger,
+  ContextMenuShortcut,
+} from "../ui/context-menu";
 import type {
   ConditionalThreadProps,
   InitialThread,
@@ -24,6 +32,7 @@ import { cn, defaultPageSize, formatDate } from "@/lib/utils";
 import { useSearchValue } from "@/hooks/use-search-value";
 import { markAsRead, markAsUnread } from "@/actions/mail";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { otherActions } from "../context/thread-context";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMail } from "@/components/mail/use-mail";
 import { useHotKey } from "@/hooks/use-hot-key";
@@ -115,73 +124,92 @@ const Thread = memo(
     }, []);
 
     return (
-      <div
-        onClick={onClick ? onClick(message) : undefined}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        key={message.id}
-        className={cn(
-          "hover:bg-offsetLight hover:bg-primary/5 group relative flex cursor-pointer flex-col items-start overflow-clip rounded-lg border border-transparent px-4 py-3 text-left text-sm transition-all hover:opacity-100",
-          !message.unread && "opacity-50",
-          (isMailSelected || isMailBulkSelected) && "border-border bg-primary/5 opacity-100",
-        )}
-      >
-        <div
-          className={cn(
-            "bg-primary absolute inset-y-0 left-0 w-1 -translate-x-2 transition-transform ease-out",
-            isMailBulkSelected && "translate-x-0",
-          )}
-        />
-        <div className="flex w-full items-center justify-between">
-          <div className="flex items-center gap-1">
-            <p
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            onClick={onClick ? onClick(message) : undefined}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            key={message.id}
+            className={cn(
+              "hover:bg-offsetLight hover:bg-primary/5 group relative flex cursor-pointer flex-col items-start overflow-clip rounded-lg border border-transparent px-4 py-3 text-left text-sm transition-all hover:opacity-100",
+              !message.unread && "opacity-50",
+              (isMailSelected || isMailBulkSelected) && "border-border bg-primary/5 opacity-100",
+              "[&[data-state=open]]:border-border [&[data-state=open]]:bg-primary/5 [&[data-state=open]]:opacity-80",
+            )}
+          >
+            <div
               className={cn(
-                message.unread ? "font-bold" : "font-medium",
-                "text-md flex items-baseline gap-1 group-hover:opacity-100",
+                "bg-primary absolute inset-y-0 left-0 w-1 -translate-x-2 transition-transform ease-out",
+                isMailBulkSelected && "translate-x-0",
               )}
-            >
-              <span className={cn(mail.selected && "max-w-[120px] truncate")}>
-                {highlightText(message.sender.name, searchValue.highlight)}
-              </span>{" "}
-              {message.unread ? <span className="size-2 rounded bg-[#006FFE]" /> : null}
-            </p>
-            <MailLabels labels={message.tags} />
-            <div className="flex items-center gap-1">
-              {message.totalReplies > 1 ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="rounded-md border border-dotted px-[5px] py-[1px] text-xs opacity-70">
-                      {message.totalReplies}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="px-1 py-0 text-xs">
-                    {message.totalReplies} Replies
-                  </TooltipContent>
-                </Tooltip>
+            />
+            <div className="flex w-full items-center justify-between">
+              <div className="flex items-center gap-1">
+                <p
+                  className={cn(
+                    message.unread ? "font-bold" : "font-medium",
+                    "text-md flex items-baseline gap-1 group-hover:opacity-100",
+                  )}
+                >
+                  <span className={cn(mail.selected && "max-w-[120px] truncate")}>
+                    {highlightText(message.sender.name, searchValue.highlight)}
+                  </span>{" "}
+                  {message.unread ? <span className="size-2 rounded bg-[#006FFE]" /> : null}
+                </p>
+                <MailLabels labels={message.tags} />
+                <div className="flex items-center gap-1">
+                  {message.totalReplies > 1 ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="rounded-md border border-dotted px-[5px] py-[1px] text-xs opacity-70">
+                          {message.totalReplies}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="px-1 py-0 text-xs">
+                        {message.totalReplies} Replies
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                </div>
+              </div>
+              {message.receivedOn ? (
+                <p
+                  className={cn(
+                    "text-xs font-normal opacity-70 transition-opacity group-hover:opacity-100",
+                    isMailSelected && "opacity-100",
+                  )}
+                >
+                  {formatDate(message.receivedOn.split(".")[0] || "")}
+                </p>
               ) : null}
             </div>
-          </div>
-          {message.receivedOn ? (
             <p
               className={cn(
-                "text-xs font-normal opacity-70 transition-opacity group-hover:opacity-100",
+                "mt-1 line-clamp-1 text-xs opacity-70 transition-opacity",
+                mail.selected ? "line-clamp-1" : "line-clamp-2",
                 isMailSelected && "opacity-100",
               )}
             >
-              {formatDate(message.receivedOn.split(".")[0] || "")}
+              {highlightText(message.subject, searchValue.highlight)}
             </p>
-          ) : null}
-        </div>
-        <p
-          className={cn(
-            "mt-1 line-clamp-1 text-xs opacity-70 transition-opacity",
-            mail.selected ? "line-clamp-1" : "line-clamp-2",
-            isMailSelected && "opacity-100",
-          )}
-        >
-          {highlightText(message.subject, searchValue.highlight)}
-        </p>
-      </div>
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          {otherActions.map((action) => (
+            <ContextMenuItem
+              key={action.id}
+              onClick={() => action.action()()}
+              // disabled={action.disabled}
+              className="font-normal"
+            >
+              {action.icon}
+              {action.label}
+              {action.shortcut && <ContextMenuShortcut>{action.shortcut}</ContextMenuShortcut>}
+            </ContextMenuItem>
+          ))}
+        </ContextMenuContent>
+      </ContextMenu>
     );
   },
 );
