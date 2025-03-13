@@ -1,6 +1,6 @@
 "use client";
 
-import { InitialThread, ThreadProps, MailListProps, MailSelectMode } from "@/types";
+import type { InitialThread, ThreadProps, MailListProps, MailSelectMode } from "@/types";
 import { EmptyState, type FolderType } from "@/components/mail/empty-state";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn, defaultPageSize, formatDate } from "@/lib/utils";
@@ -133,7 +133,7 @@ export function DraftsList({ isCompact }: MailListProps) {
         await loadMore();
       }
     },
-    [isLoading, isValidating, nextPageToken, itemHeight],
+    [isLoading, isValidating, itemHeight, loadMore],
   );
 
   const [massSelectMode, setMassSelectMode] = useState(false);
@@ -188,52 +188,60 @@ export function DraftsList({ isCompact }: MailListProps) {
     setSelectAllBelowMode(true);
   });
 
-  useHotKey("Meta+Shift+u", async () => {
+  useHotKey("Meta+Shift+u", () => {
     resetSelectMode();
-    const res = await markAsUnread({ ids: mail.bulkSelected });
-    if (res.success) {
-      toast.success("Marked as unread");
-      setMail((prev) => ({
-        ...prev,
-        bulkSelected: [],
-      }));
-    } else toast.error("Failed to mark as unread");
+    void (async () => {
+      const res = await markAsUnread({ ids: mail.bulkSelected });
+      if (res.success) {
+        toast.success("Marked as unread");
+        setMail((prev) => ({
+          ...prev,
+          bulkSelected: [],
+        }));
+      } else toast.error("Failed to mark as unread");
+    })();
   });
 
-  useHotKey("Control+Shift+u", async () => {
+  useHotKey("Control+Shift+u", () => {
     resetSelectMode();
-    const res = await markAsUnread({ ids: mail.bulkSelected });
-    if (res.success) {
-      toast.success("Marked as unread");
-      setMail((prev) => ({
-        ...prev,
-        bulkSelected: [],
-      }));
-    } else toast.error("Failed to mark as unread");
+    void (async () => {
+      const res = await markAsUnread({ ids: mail.bulkSelected });
+      if (res.success) {
+        toast.success("Marked as unread");
+        setMail((prev) => ({
+          ...prev,
+          bulkSelected: [],
+        }));
+      } else toast.error("Failed to mark as unread");
+    })();
   });
 
-  useHotKey("Meta+Shift+i", async () => {
+  useHotKey("Meta+Shift+i", () => {
     resetSelectMode();
-    const res = await markAsRead({ ids: mail.bulkSelected });
-    if (res.success) {
-      toast.success("Marked as read");
-      setMail((prev) => ({
-        ...prev,
-        bulkSelected: [],
-      }));
-    } else toast.error("Failed to mark as read");
+    void (async () => {
+      const res = await markAsRead({ ids: mail.bulkSelected });
+      if (res.success) {
+        toast.success("Marked as read");
+        setMail((prev) => ({
+          ...prev,
+          bulkSelected: [],
+        }));
+      } else toast.error("Failed to mark as read");
+    })();
   });
 
-  useHotKey("Control+Shift+i", async () => {
+  useHotKey("Control+Shift+i", () => {
     resetSelectMode();
-    const res = await markAsRead({ ids: mail.bulkSelected });
-    if (res.success) {
-      toast.success("Marked as read");
-      setMail((prev) => ({
-        ...prev,
-        bulkSelected: [],
-      }));
-    } else toast.error("Failed to mark as read");
+    void (async () => {
+      const res = await markAsRead({ ids: mail.bulkSelected });
+      if (res.success) {
+        toast.success("Marked as read");
+        setMail((prev) => ({
+          ...prev,
+          bulkSelected: [],
+        }));
+      } else toast.error("Failed to mark as read");
+    })();
   });
 
   // useHotKey("Meta+Shift+j", async () => {
@@ -250,30 +258,26 @@ export function DraftsList({ isCompact }: MailListProps) {
   //   else toast.error("Failed to mark as junk");
   // });
 
-  useHotKey("Meta+a", async (event) => {
-    // @ts-expect-error
-    event.preventDefault();
+  useHotKey("Meta+a", (event) => {
+    event?.preventDefault();
     resetSelectMode();
     selectAll();
   });
 
-  useHotKey("Control+a", async (event) => {
-    // @ts-expect-error
-    event.preventDefault();
+  useHotKey("Control+a", (event) => {
+    event?.preventDefault();
     resetSelectMode();
     selectAll();
   });
 
-  useHotKey("Meta+n", async (event) => {
-    // @ts-expect-error
-    event.preventDefault();
+  useHotKey("Meta+n", (event) => {
+    event?.preventDefault();
     resetSelectMode();
     selectAll();
   });
 
-  useHotKey("Control+n", async (event) => {
-    // @ts-expect-error
-    event.preventDefault();
+  useHotKey("Control+n", (event) => {
+    event?.preventDefault();
     resetSelectMode();
     selectAll();
   });
