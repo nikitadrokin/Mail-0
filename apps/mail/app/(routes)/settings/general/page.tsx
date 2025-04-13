@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Form,
@@ -7,76 +7,192 @@ import {
   FormField,
   FormItem,
   FormLabel,
-} from "@/components/ui/form";
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { SettingsCard } from "@/components/settings/settings-card";
-import { availableLocales, defaultLocale } from "@/i18n/config";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Globe, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { changeLocale } from "@/i18n/utils";
-import { useTranslations, useLocale } from "next-intl";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { toast } from "sonner";
-import * as z from "zod";
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SettingsCard } from '@/components/settings/settings-card';
+import { availableLocales, locales, Locale } from '@/i18n/config';
+import { useForm, ControllerRenderProps } from 'react-hook-form';
+import { useState, useEffect, useMemo, memo } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTranslations, useLocale } from 'next-intl';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { saveUserSettings } from '@/actions/settings';
+import { getBrowserTimezone } from '@/lib/timezones';
+import { Textarea } from '@/components/ui/textarea';
+import { useSettings } from '@/hooks/use-settings';
+import { Globe, Clock, XIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { changeLocale } from '@/i18n/utils';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import * as z from 'zod';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const formSchema = z.object({
-  language: z.string(),
+  language: z.enum(locales as [string, ...string[]]),
   timezone: z.string(),
   dynamicContent: z.boolean(),
   externalImages: z.boolean(),
+  customPrompt: z.string(),
+  trustedSenders: z.string().array(),
+  signature: z.object({
+    enabled: z.boolean(),
+    content: z.string(),
+    includeByDefault: z.boolean(),
+  }),
 });
+
+const TimezoneSelect = memo(
+  ({
+    field,
+    t,
+  }: {
+    field: ControllerRenderProps<z.infer<typeof formSchema>, 'timezone'>;
+    t: any;
+  }) => {
+    const [open, setOpen] = useState(false);
+    const [timezoneSearch, setTimezoneSearch] = useState('');
+
+    const timezones = useMemo(() => Intl.supportedValuesOf('timeZone'), []);
+
+    const filteredTimezones = useMemo(() => {
+      if (!timezoneSearch) return timezones;
+      return timezones.filter((timezone) =>
+        timezone.toLowerCase().includes(timezoneSearch.toLowerCase()),
+      );
+    }, [timezones, timezoneSearch]);
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <FormControl>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-46 flex items-center justify-start"
+            >
+              <Clock className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{field.value}</span>
+            </Button>
+          </FormControl>
+        </PopoverTrigger>
+        <PopoverContent className="w-[300px] p-0">
+          <div className="px-3 py-2">
+            <input
+              className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder={t('pages.settings.general.selectTimezone')}
+              value={timezoneSearch}
+              onChange={(e) => setTimezoneSearch(e.target.value)}
+            />
+          </div>
+          <ScrollArea className="h-[300px]">
+            <div className="p-1">
+              {filteredTimezones.length === 0 && (
+                <div className="text-muted-foreground p-2 text-center text-sm">
+                  {t('pages.settings.general.noResultsFound')}
+                </div>
+              )}
+              {filteredTimezones.map((timezone) => (
+                <div
+                  key={timezone}
+                  className={cn(
+                    'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none',
+                    field.value === timezone
+                      ? 'bg-accent text-accent-foreground'
+                      : 'hover:bg-accent hover:text-accent-foreground',
+                  )}
+                  onClick={() => {
+                    field.onChange(timezone);
+                    setOpen(false);
+                  }}
+                >
+                  {timezone}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </PopoverContent>
+      </Popover>
+    );
+  },
+);
+
+TimezoneSelect.displayName = 'TimezoneSelect';
 
 export default function GeneralPage() {
   const [isSaving, setIsSaving] = useState(false);
   const locale = useLocale();
   const t = useTranslations();
+  const { settings, mutate } = useSettings();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      language: locale,
-      timezone: "UTC",
+      language: locale as string,
+      timezone: getBrowserTimezone(),
       dynamicContent: false,
       externalImages: true,
+      customPrompt: '',
+      trustedSenders: [],
+      signature: {
+        enabled: false,
+        content: '',
+        includeByDefault: true,
+      },
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const externalImages = form.watch("externalImages")
+
+  useEffect(() => {
+    if (settings) {
+      form.reset(settings);
+    }
+  }, [form, settings]);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSaving(true);
 
-    // TODO: Save settings in user's account
+    try {
+      await saveUserSettings(values);
+      await mutate(values, { revalidate: false });
 
-    changeLocale(values.language);
+      if (values.language !== locale) {
+        await changeLocale(values.language as Locale);
+        const localeName = new Intl.DisplayNames([values.language], { type: 'language' }).of(
+          values.language,
+        );
+        toast.success(t('common.settings.languageChanged', { locale: localeName }));
+      }
 
-    if (values.language !== locale) {
-      const localeName = new Intl.DisplayNames([values.language], { type: 'language' }).of(values.language);
-      toast.success(t("pages.settings.general.languageChangedTo", { language: localeName }));
-    }
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log(values);
+      toast.success(t('common.settings.saved'));
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      toast.error(t('common.settings.failedToSave'));
+      // Revert the optimistic update
+      await mutate();
+    } finally {
       setIsSaving(false);
-    }, 1000);
+    }
   }
 
   return (
     <div className="grid gap-6">
       <SettingsCard
-        title={t("pages.settings.general.title")}
-        description={t("pages.settings.general.description")}
+        title={t('pages.settings.general.title')}
+        description={t('pages.settings.general.description')}
         footer={
           <Button type="submit" form="general-form" disabled={isSaving}>
-            {isSaving ? t("common.actions.saving") : t("common.actions.saveChanges")}
+            {isSaving ? t('common.actions.saving') : t('common.actions.saveChanges')}
           </Button>
         }
       >
@@ -88,12 +204,12 @@ export default function GeneralPage() {
                 name="language"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("pages.settings.general.language")}</FormLabel>
+                    <FormLabel>{t('pages.settings.general.language')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-36">
                           <Globe className="mr-2 h-4 w-4" />
-                          <SelectValue placeholder="Select a language" />
+                          <SelectValue placeholder={t('pages.settings.general.selectLanguage')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -111,43 +227,25 @@ export default function GeneralPage() {
                 control={form.control}
                 name="timezone"
                 render={({ field }) => (
-                  // TODO: Add all timezones
                   <FormItem>
-                    <FormLabel>{t("pages.settings.general.timezone")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-36">
-                          <Clock className="mr-2 h-4 w-4" />
-                          <SelectValue placeholder="Select a timezone" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="UTC">UTC</SelectItem>
-                        <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
-                        <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
-                        <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
-                        <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
-                        <SelectItem value="Europe/London">British Time (BST)</SelectItem>
-                        <SelectItem value="Europe/Paris">Central European Time (CET)</SelectItem>
-                        <SelectItem value="Asia/Tokyo">Japan Standard Time (JST)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>{t('pages.settings.general.timezone')}</FormLabel>
+                    <TimezoneSelect field={field} t={t} />
                   </FormItem>
                 )}
               />
             </div>
-            <div className="flex w-full items-center gap-5">
-              <FormField
+            <div className="flex w-full w-max flex-col items-start gap-5">
+              {/* <FormField
                 control={form.control}
                 name="dynamicContent"
                 render={({ field }) => (
-                  <FormItem className="bg-popover flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="bg-popover flex flex-row items-center justify-between rounded-lg border p-4 w-full md:w-auto">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">
-                        {t("pages.settings.general.dynamicContent")}
+                        {t('pages.settings.general.dynamicContent')}
                       </FormLabel>
                       <FormDescription>
-                        {t("pages.settings.general.dynamicContentDescription")}
+                        {t('pages.settings.general.dynamicContentDescription')}
                       </FormDescription>
                     </div>
                     <FormControl className="ml-4">
@@ -155,18 +253,18 @@ export default function GeneralPage() {
                     </FormControl>
                   </FormItem>
                 )}
-              />
+              /> */}
               <FormField
                 control={form.control}
                 name="externalImages"
                 render={({ field }) => (
-                  <FormItem className="bg-popover flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="bg-popover flex w-full flex-row items-center justify-between rounded-lg border p-4 md:w-auto">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">
-                        {t("pages.settings.general.externalImages")}
+                        {t('pages.settings.general.externalImages')}
                       </FormLabel>
                       <FormDescription>
-                        {t("pages.settings.general.externalImagesDescription")}
+                        {t('pages.settings.general.externalImagesDescription')}
                       </FormDescription>
                     </div>
                     <FormControl className="ml-4">
@@ -175,7 +273,63 @@ export default function GeneralPage() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="trustedSenders"
+                render={({ field}) => field.value.length > 0 && !externalImages ? (
+                  <FormItem className="bg-popover flex w-full flex-col rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">
+                        {t('pages.settings.general.trustedSenders')}
+                      </FormLabel>
+                      <FormDescription>
+                        {t('pages.settings.general.trustedSendersDescription')}
+                      </FormDescription>
+                    </div>
+                    <ScrollArea className="flex flex-col max-h-32 pr-3">
+                      {field.value.map((senderEmail) => (
+                        <div className="flex items-center justify-between mt-1.5 first:mt-0" key={senderEmail}>
+                          <span>{senderEmail}</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                          <button
+                            onClick={() =>
+                              field.onChange(field.value.filter((e) => e !== senderEmail))
+                            }
+                          >
+                            <XIcon className="h-4 w-4 transition hover:opacity-80" />
+                          </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {t('common.actions.remove')}
+                          </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      ))}
+                    </ScrollArea>
+                  </FormItem>
+                ) : <></>}
+              />
             </div>
+            <FormField
+              control={form.control}
+              name="customPrompt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('pages.settings.general.customPrompt')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder={t('pages.settings.general.customPromptPlaceholder')}
+                      className="min-h-[350px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t('pages.settings.general.customPromptDescription')}
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
           </form>
         </Form>
       </SettingsCard>

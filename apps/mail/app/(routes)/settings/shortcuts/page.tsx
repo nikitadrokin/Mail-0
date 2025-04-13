@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { SettingsCard } from "@/components/settings/settings-card";
-import { keyboardShortcuts } from "@/config/shortcuts"; //import the shortcuts
-import type { MessageKey } from "@/config/navigation";
-import { Button } from "@/components/ui/button";
-import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { SettingsCard } from '@/components/settings/settings-card';
+import { keyboardShortcuts } from '@/config/shortcuts'; //import the shortcuts
+import type { MessageKey } from '@/config/navigation';
+import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 
 export default function ShortcutsPage() {
   const shortcuts = keyboardShortcuts; //now gets shortcuts from the config file
@@ -14,12 +14,12 @@ export default function ShortcutsPage() {
   return (
     <div className="grid gap-6">
       <SettingsCard
-        title={t("pages.settings.shortcuts.title")}
-        description={t("pages.settings.shortcuts.description")}
+        title={t('pages.settings.shortcuts.title')}
+        description={t('pages.settings.shortcuts.description')}
         footer={
           <div className="flex gap-4">
-            <Button variant="outline">{t("common.actions.resetToDefaults")}</Button>
-            <Button>{t("common.actions.saveChanges")}</Button>
+            <Button variant="outline">{t('common.actions.resetToDefaults')}</Button>
+            <Button>{t('common.actions.saveChanges')}</Button>
           </div>
         }
       >

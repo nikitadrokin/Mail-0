@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Github, ArrowLeft, Link2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Footer from "@/components/home/footer";
-import { createSectionId } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import React from "react";
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Github, ArrowLeft, Link2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Footer from '@/components/home/footer';
+import { createSectionId } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import React from 'react';
 
-const LAST_UPDATED = "February 13, 2025";
+const LAST_UPDATED = 'February 13, 2025';
 
 export default function TermsOfService() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function TermsOfService() {
             variant="ghost"
             size="sm"
             className="dark:text-muted-foreground gap-2 text-gray-600 hover:text-gray-900 dark:hover:text-white"
-            onClick={() => router.push("/")}
+            onClick={() => router.push('/')}
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -71,7 +71,7 @@ export default function TermsOfService() {
                         aria-label={`Copy link to ${section.title} section`}
                       >
                         <Link2
-                          className={`h-4 w-4 ${copiedSection === sectionId ? "text-green-500 dark:text-green-400" : ""}`}
+                          className={`h-4 w-4 ${copiedSection === sectionId ? 'text-green-500 dark:text-green-400' : ''}`}
                         />
                       </button>
                     </div>
@@ -95,7 +95,7 @@ export default function TermsOfService() {
 
 const sections = [
   {
-    title: "Overview",
+    title: 'Overview',
     content: (
       <p>
         0.email is an open-source email solution that enables users to self-host their email service
@@ -104,7 +104,7 @@ const sections = [
     ),
   },
   {
-    title: "Service Description",
+    title: 'Service Description',
     content: (
       <div className="space-y-8">
         <div>
@@ -129,7 +129,7 @@ const sections = [
     ),
   },
   {
-    title: "User Responsibilities",
+    title: 'User Responsibilities',
     content: (
       <div className="text-muted-foreground mt-4 space-y-3">
         <p>Users agree to:</p>
@@ -144,7 +144,7 @@ const sections = [
     ),
   },
   {
-    title: "Software License",
+    title: 'Software License',
     content: (
       <div className="text-muted-foreground mt-4 space-y-3">
         <p>0.email is licensed under the MIT License:</p>
@@ -157,7 +157,7 @@ const sections = [
     ),
   },
   {
-    title: "Community Guidelines",
+    title: 'Community Guidelines',
     content: (
       <div className="text-muted-foreground mt-4 space-y-3">
         <p>Users participating in our community agree to:</p>
@@ -171,7 +171,7 @@ const sections = [
     ),
   },
   {
-    title: "Contact Information",
+    title: 'Contact Information',
     content: (
       <div className="text-muted-foreground mt-4 space-y-3">
         <p>For questions about these terms:</p>

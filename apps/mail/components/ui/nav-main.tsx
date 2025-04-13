@@ -1,18 +1,28 @@
-"use client";
+'use client';
 
-import { usePathname, useSearchParams } from "next/navigation";
-import { useRef, useCallback } from "react";
-import * as React from "react";
-import Link from "next/link";
-
-import { SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "./sidebar";
-import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { MessageKeys, useTranslations } from "next-intl";
-import { MessageKey } from "@/config/navigation";
-import { Badge } from "@/components/ui/badge";
-import { useStats } from "@/hooks/use-stats";
-import { BASE_URL } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
+} from './sidebar';
+import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { clearBulkSelectionAtom } from '../mail/use-mail';
+import { type MessageKey } from '@/config/navigation';
+import { Badge } from '@/components/ui/badge';
+import { useStats } from '@/hooks/use-stats';
+import { useTranslations } from 'next-intl';
+import { useRef, useCallback } from 'react';
+import { BASE_URL } from '@/lib/constants';
+import { cn } from '@/lib/utils';
+import { useAtom } from 'jotai';
+import * as React from 'react';
+import Link from 'next/link';
+import {type NavItem} from '@/config/navigation'
+import { GoldenTicketModal } from '../golden';
+import { useSession } from '@/lib/auth-client';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   ref?: React.Ref<SVGSVGElement>;
@@ -20,19 +30,12 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
   stopAnimation?: () => void;
 }
 
-interface NavItemProps {
-  title: string;
-  url: string;
-  icon?: React.ComponentType<IconProps>;
-  badge?: number;
+interface NavItemProps extends NavItem {
   isActive?: boolean;
   isExpanded?: boolean;
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
   suffix?: React.ComponentType<IconProps>;
-  isBackButton?: boolean;
-  isSettingsButton?: boolean;
   isSettingsPage?: boolean;
-  disabled?: boolean;
 }
 
 interface NavMainProps {
@@ -51,6 +54,7 @@ type IconRefType = SVGSVGElement & {
 export function NavMain({ items }: NavMainProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: session, isPending } = useSession();
 
   /**
    * Validates URLs to prevent open redirect vulnerabilities.
@@ -64,7 +68,7 @@ export function NavMain({ items }: NavMainProps) {
   const isValidInternalUrl = useCallback((url: string) => {
     if (!url) return false;
     // Accept absolute paths as they are always internal
-    if (url.startsWith("/")) return true;
+    if (url.startsWith('/')) return true;
     try {
       const urlObj = new URL(url, BASE_URL);
       // Prevent redirects to external domains by checking against our base URL
@@ -77,8 +81,8 @@ export function NavMain({ items }: NavMainProps) {
   const getHref = useCallback(
     (item: NavItemProps) => {
       // Get the current 'from' parameter
-      const currentFrom = searchParams.get("from");
-      const category = searchParams.get("category");
+      const currentFrom = searchParams.get('from');
+      const category = searchParams.get('category');
 
       // Handle settings navigation
       if (item.isSettingsButton) {
@@ -98,7 +102,7 @@ export function NavMain({ items }: NavMainProps) {
           }
         }
         // Fall back to safe default if URL is missing or invalid
-        return "/mail";
+        return '/mail';
       }
 
       // Handle settings pages navigation
@@ -113,7 +117,7 @@ export function NavMain({ items }: NavMainProps) {
       }
 
       // Handle category links
-      if (category && item.url.includes("category=")) {
+      if (category && item.url.includes('category=')) {
         return item.url;
       }
 
@@ -126,10 +130,10 @@ export function NavMain({ items }: NavMainProps) {
     (url: string) => {
       const urlObj = new URL(
         url,
-        typeof window === "undefined" ? BASE_URL : window.location.origin,
+        typeof window === 'undefined' ? BASE_URL : window.location.origin,
       );
-      const cleanPath = pathname.replace(/\/$/, "");
-      const cleanUrl = urlObj.pathname.replace(/\/$/, "");
+      const cleanPath = pathname.replace(/\/$/, '');
+      const cleanUrl = urlObj.pathname.replace(/\/$/, '');
 
       if (cleanPath !== cleanUrl) return false;
 
@@ -161,31 +165,33 @@ export function NavMain({ items }: NavMainProps) {
                     {...item}
                     isActive={isUrlActive(item.url)}
                     href={getHref(item)}
+                    target={item.target}
                   />
                 ))}
               </div>
             </SidebarMenuItem>
           </Collapsible>
         ))}
+        {!session || isPending ? null : !session?.hasUsedTicket ? <GoldenTicketModal /> : null}
       </SidebarMenu>
     </SidebarGroup>
   );
 }
 
 function NavItem(item: NavItemProps & { href: string }) {
-  const iconRef = useRef<IconRefType>(null);
-  const { data: stats } = useStats();
-
-  const t = useTranslations();
+	const iconRef = useRef<IconRefType>(null);
+	const { data: stats } = useStats();
+	const t = useTranslations();
+	const [, clearBulkSelection] = useAtom(clearBulkSelectionAtom);
 
   if (item.disabled) {
     return (
       <SidebarMenuButton
-        tooltip={item.title}
+        tooltip={t(item.title as MessageKey)}
         className="flex cursor-not-allowed items-center opacity-50"
       >
         {item.icon && <item.icon ref={iconRef} className="relative mr-2.5 h-3 w-3.5" />}
-        <p className="mt-0.5 text-[13px]">{t(item.title as MessageKey)}</p>
+        <p className="mt-0.5 text-[13px] truncate">{t(item.title as MessageKey)}</p>
       </SidebarMenuButton>
     );
   }
@@ -193,28 +199,28 @@ function NavItem(item: NavItemProps & { href: string }) {
   // Apply animation handlers to all buttons including back buttons
   const linkProps = {
     href: item.href,
-    onClick: item.onClick,
     onMouseEnter: () => iconRef.current?.startAnimation?.(),
     onMouseLeave: () => iconRef.current?.stopAnimation?.(),
   };
 
+  const { setOpenMobile } = useSidebar();
+
   const buttonContent = (
     <SidebarMenuButton
-      tooltip={item.title}
+      tooltip={t(item.title as MessageKey)}
       className={cn(
-        "hover:bg-subtleWhite dark:hover:bg-subtleBlack flex items-center",
-        item.isActive && "bg-subtleWhite text-accent-foreground dark:bg-subtleBlack",
+        'hover:bg-subtleWhite dark:hover:bg-subtleBlack flex items-center',
+        item.isActive && 'bg-subtleWhite text-accent-foreground dark:bg-subtleBlack',
       )}
+      onClick={() => setOpenMobile(false)}
     >
-      {item.icon && <item.icon ref={iconRef} className="mr-2" />}
-      <p className="mt-0.5 text-[13px]">{t(item.title as MessageKey)}</p>
-      {stats && stats.find((stat) => stat.label?.toLowerCase() === item.title?.toLowerCase()) && (
-        <Badge className="ml-auto rounded-md" variant="outline">
+      {item.icon && <item.icon ref={iconRef} className="mr-2 shrink-0" />}
+      <p className="mt-0.5 text-[13px] truncate min-w-0 flex-1">{t(item.title as MessageKey)}</p>
+      {stats && stats.find((stat) => stat.label?.toLowerCase() === item.id?.toLowerCase()) && (
+        <Badge className="ml-auto rounded-md shrink-0" variant="outline">
           {stats
-
-            .find((stat) => stat.label?.toLowerCase() === item.title?.toLowerCase())
-
-            ?.count?.toLocaleString() || "0"}
+            .find((stat) => stat.label?.toLowerCase() === item.id?.toLowerCase())
+            ?.count?.toLocaleString() || '0'}
         </Badge>
       )}
     </SidebarMenuButton>
@@ -227,7 +233,7 @@ function NavItem(item: NavItemProps & { href: string }) {
   return (
     <Collapsible defaultOpen={item.isActive}>
       <CollapsibleTrigger asChild>
-        <Link {...linkProps}>{buttonContent}</Link>
+        <Link {...linkProps} target={item.target}>{buttonContent}</Link>
       </CollapsibleTrigger>
     </Collapsible>
   );

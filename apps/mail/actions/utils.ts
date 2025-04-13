@@ -52,8 +52,26 @@ export const getActiveDriver = async () => {
         auth: {
             access_token: _connection.accessToken,
             refresh_token: _connection.refreshToken,
+            email: _connection.email
         },
     });
 
     return driver
+}
+
+export const getActiveConnection = async () => {
+    const headersList = await headers();
+
+    const session = await auth.api.getSession({ headers: headersList });
+    if (!session?.user) throw new Error("Unauthorized");
+    if (!session.connectionId) throw new Error("Unauthorized, reconnect");
+
+    const [_connection] = await db
+        .select()
+        .from(connection)
+        .where(and(eq(connection.userId, session.user.id), eq(connection.id, session.connectionId)))
+        .orderBy(connection.createdAt)
+        .limit(1);
+
+    return _connection
 }

@@ -29,16 +29,23 @@ export interface SidebarData {
   navMain: NavSection[];
 }
 
+export interface Sender {
+  name: string;
+  email: string;
+}
+
 export interface ParsedMessage {
   id: string;
   connectionId?: string;
   title: string;
   subject: string;
   tags: string[];
-  sender: {
-    name: string;
-    email: string;
-  };
+  sender: Sender;
+  to: Sender[];
+  cc: Sender[] | null;
+  tls: boolean;
+  listUnsubscribe?: string;
+  listUnsubscribePost?: string;
   receivedOn: string;
   unread: boolean;
   body: string;
@@ -47,6 +54,7 @@ export interface ParsedMessage {
   decodedBody?: string;
   references?: string;
   inReplyTo?: string;
+  replyTo?: string;
   messageId?: string;
   threadId?: string;
   attachments?: Attachment[];
@@ -64,10 +72,7 @@ export interface InitialThread {
   threadId?: string;
   title: string;
   tags: string[];
-  sender: {
-    name: string;
-    email: string;
-  };
+  sender: Sender;
   receivedOn: string;
   unread: boolean;
   subject: string;
@@ -95,8 +100,13 @@ export type ThreadProps = {
   message: InitialThread;
   selectMode: MailSelectMode;
   // TODO: enforce types instead of sprinkling "any"
-  onClick?: (message: InitialThread) => () => Promise<any> | undefined;
+  onClick?: (message: InitialThread) => () => void;
   isCompact?: boolean;
+  folder?: string;
+  isKeyboardFocused?: boolean;
+  isInQuickActionMode?: boolean;
+  selectedQuickActionIndex?: number;
+  resetNavigation?: () => void;
 };
 
 export type ConditionalThreadProps = ThreadProps &
@@ -104,3 +114,16 @@ export type ConditionalThreadProps = ThreadProps &
     | { demo?: true; sessionData?: { userId: string; connectionId: string | null } }
     | { demo?: false; sessionData: { userId: string; connectionId: string | null } }
   );
+
+
+
+export interface IOutgoingMessage {
+  to: Sender[];
+  cc?: Sender[];
+  bcc?: Sender[];
+  subject: string
+  message: string
+  attachments: any[]
+  headers: Record<string, string>
+  threadId?: string
+}

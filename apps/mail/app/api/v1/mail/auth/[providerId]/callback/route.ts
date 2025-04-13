@@ -34,6 +34,7 @@ export async function GET(
     const userInfo = await driver.getUserInfo({
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
+      email: ''
     });
 
     if (!userInfo.data?.emailAddresses?.[0]?.value) {
@@ -59,7 +60,7 @@ export async function GET(
       updatedAt: new Date(),
     });
 
-    return NextResponse.redirect(new URL("/onboarding", request.url));
+    return NextResponse.redirect(new URL("/mail", request.url));
   } catch (error) {
     return new NextResponse(JSON.stringify({ error }));
   }

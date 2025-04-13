@@ -8,7 +8,7 @@
     "build": "turbo run build",
     "start": "turbo run start",
     "lint": "turbo run lint",
-    "format": "prettier --write .",
+    "format": "prettier --write apps/**/*.{ts,tsx} --log-level silent",
     "check": "bun run check:format && bun run lint",
     "check:format": "prettier . --check",
     "prepare": "husky",
@@ -29,7 +29,7 @@
     "prettier": "3.5.3",
     "prettier-plugin-sort-imports": "1.8.6",
     "prettier-plugin-tailwindcss": "0.6.11",
-    "turbo": "2.4.4",
+    "turbo": "^2.5.0",
     "typescript": "5.8.2"
   },
   "workspaces": [
@@ -37,11 +37,10 @@
     "packages/*"
   ],
   "dependencies": {
-    "@tiptap/extension-link": "^2.11.5",
-    "@tiptap/pm": "2.11.5",
-    "@tiptap/react": "2.11.5",
-    "@tiptap/starter-kit": "^2.11.5",
-    "@vercel/analytics": "1.5.0",
-    "input-otp": "^1.4.2"
+    "@types/dompurify": "^3.2.0",
+    "dompurify": "^3.2.5",
+    "he": "^1.2.0",
+    "openai": "^4.90.0",
+    "posthog-js": "^1.234.4"
   }
 }

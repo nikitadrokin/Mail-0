@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SettingsCard } from "@/components/settings/settings-card";
-import { ModeToggle } from "@/components/theme/theme-switcher";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { SettingsCard } from '@/components/settings/settings-card';
+import { ModeToggle } from '@/components/theme/theme-switcher';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { useTranslations } from 'next-intl';
+import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import * as z from 'zod';
 
 // TODO: More customization options
 const formSchema = z.object({
-  inboxType: z.enum(["default", "important", "unread"]),
+  inboxType: z.enum(['default', 'important', 'unread']),
 });
 
 export default function AppearancePage() {
@@ -24,7 +24,7 @@ export default function AppearancePage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      inboxType: "default",
+      inboxType: 'default',
     },
   });
 
@@ -39,11 +39,11 @@ export default function AppearancePage() {
   return (
     <div className="grid gap-6">
       <SettingsCard
-        title={t("pages.settings.appearance.title")}
-        description={t("pages.settings.appearance.description")}
+        title={t('pages.settings.appearance.title')}
+        description={t('pages.settings.appearance.description')}
         footer={
           <Button type="submit" form="appearance-form" disabled={isSaving}>
-            {isSaving ? t("common.actions.saving") : t("common.actions.saveChanges")}
+            {isSaving ? t('common.actions.saving') : t('common.actions.saveChanges')}
           </Button>
         }
       >
@@ -51,7 +51,7 @@ export default function AppearancePage() {
           <form id="appearance-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>{t("pages.settings.appearance.theme")}</Label>
+                <Label>{t('pages.settings.appearance.theme')}</Label>
                 <ModeToggle className="bg-popover w-36" />
               </div>
             </div>

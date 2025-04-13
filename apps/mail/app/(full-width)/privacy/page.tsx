@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Github, Mail, ArrowLeft, Link2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Footer from "@/components/home/footer";
-import { createSectionId } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import React from "react";
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Github, Mail, ArrowLeft, Link2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Footer from '@/components/home/footer';
+import { createSectionId } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import React from 'react';
 
-const LAST_UPDATED = "February 13, 2025";
+const LAST_UPDATED = 'February 13, 2025';
 
 export default function PrivacyPolicy() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
             variant="ghost"
             size="sm"
             className="dark:text-muted-foreground gap-2 text-gray-600 hover:text-gray-900 dark:hover:text-white"
-            onClick={() => router.push("/")}
+            onClick={() => router.push('/')}
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -70,7 +70,7 @@ export default function PrivacyPolicy() {
                         aria-label={`Copy link to ${section.title} section`}
                       >
                         <Link2
-                          className={`h-4 w-4 ${copiedSection === sectionId ? "text-green-500 dark:text-green-400" : ""}`}
+                          className={`h-4 w-4 ${copiedSection === sectionId ? 'text-green-500 dark:text-green-400' : ''}`}
                         />
                       </button>
                     </div>
@@ -94,7 +94,7 @@ export default function PrivacyPolicy() {
 
 const sections = [
   {
-    title: "Our Commitment to Privacy",
+    title: 'Our Commitment to Privacy',
     content: (
       <p>
         At Zero, we believe that privacy is a fundamental right. Our open-source email solution is
@@ -104,7 +104,7 @@ const sections = [
     ),
   },
   {
-    title: "Google Account Integration",
+    title: 'Google Account Integration',
     content: (
       <>
         <p className="mb-4">When you use Zero with your Google Account:</p>
@@ -122,7 +122,7 @@ const sections = [
     ),
   },
   {
-    title: "Data Collection and Usage",
+    title: 'Data Collection and Usage',
     content: (
       <div className="space-y-6">
         <div>
@@ -153,7 +153,7 @@ const sections = [
     ),
   },
   {
-    title: "Data Protection and Security",
+    title: 'Data Protection and Security',
     content: (
       <ul className="ml-4 list-disc space-y-2">
         <li>End-to-end encryption for all email communications</li>
@@ -165,7 +165,7 @@ const sections = [
     ),
   },
   {
-    title: "Google User Data Handling",
+    title: 'Google User Data Handling',
     content: (
       <div className="space-y-6">
         <div>
@@ -214,11 +214,11 @@ const sections = [
     ),
   },
   {
-    title: "Limited Use Disclosure",
+    title: 'Limited Use Disclosure',
     content: (
       <div>
         Our use and transfer to any other app of information received from Google APIs will adhere
-        to the{" "}
+        to the{' '}
         <a
           href="https://developers.google.com/terms/api-services-user-data-policy"
           className="inline-flex items-center text-blue-600 hover:text-blue-800"
@@ -240,7 +240,7 @@ const sections = [
     ),
   },
   {
-    title: "Your Rights and Controls",
+    title: 'Your Rights and Controls',
     content: (
       <ul className="ml-4 list-disc space-y-2">
         <li>Right to revoke access to your Google account at any time</li>
@@ -251,7 +251,7 @@ const sections = [
     ),
   },
   {
-    title: "Contact Us",
+    title: 'Contact',
     content: (
       <div className="space-y-3">
         <p>For privacy-related questions or concerns:</p>
@@ -275,7 +275,7 @@ const sections = [
     ),
   },
   {
-    title: "Updates to This Policy",
+    title: 'Updates to This Policy',
     content: (
       <p>
         We may update this privacy policy from time to time. We will notify users of any material

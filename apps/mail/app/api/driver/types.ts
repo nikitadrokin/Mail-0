@@ -1,8 +1,8 @@
-import { type InitialThread, type ParsedMessage } from "@/types";
+import { type IOutgoingMessage, type InitialThread, type ParsedMessage } from '@/types';
 
 export interface MailManager {
   get(id: string): Promise<ParsedMessage[] | undefined>;
-  create(data: any): Promise<any>;
+  create(data: IOutgoingMessage): Promise<any>;
   createDraft(data: any): Promise<any>;
   getDraft: (id: string) => Promise<any>;
   listDrafts: (q?: string, maxResults?: number, pageToken?: string) => Promise<any>;
@@ -12,27 +12,29 @@ export interface MailManager {
     query?: string,
     maxResults?: number,
     labelIds?: string[],
-    pageToken?: string,
+    pageToken?: string | number,
   ): Promise<(T & { threads: InitialThread[] }) | undefined>;
   count(): Promise<any>;
   generateConnectionAuthUrl(userId: string): string;
   getTokens(
     code: string,
   ): Promise<{ tokens: { access_token?: any; refresh_token?: any; expiry_date?: number } }>;
-  getUserInfo(tokens: IConfig["auth"]): Promise<any>;
+  getUserInfo(tokens: IConfig['auth']): Promise<any>;
   getScope(): string;
   markAsRead(id: string[]): Promise<void>;
   markAsUnread(id: string[]): Promise<void>;
-  normalizeIds(id: string[]): { normalizedIds: string[]; threadIds: string[] };
+  normalizeIds(id: string[]): { threadIds: string[] };
   modifyLabels(
     id: string[],
     options: { addLabels: string[]; removeLabels: string[] },
   ): Promise<void>;
+  getAttachment(messageId: string, attachmentId: string): Promise<string | undefined>;
 }
 
 export interface IConfig {
   auth?: {
     access_token: string;
     refresh_token: string;
+    email: string
   };
 }

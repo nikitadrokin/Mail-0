@@ -1,13 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-"use client";
-
-import type { InitialThread, ParsedMessage } from "@/types";
-import { getMail, getMails } from "@/actions/mail";
-import { useSession } from "@/lib/auth-client";
-import useSWRInfinite from "swr/infinite";
-import useSWR, { preload } from "swr";
-import { useMemo } from "react";
+'use client';
+import { useParams, useSearchParams } from 'next/navigation';
+import type { InitialThread, ParsedMessage } from '@/types';
+import { useSearchValue } from '@/hooks/use-search-value';
+import { useSession } from '@/lib/auth-client';
+import { defaultPageSize } from '@/lib/utils';
+import useSWRInfinite from 'swr/infinite';
+import useSWR, { preload } from 'swr';
+import { useMemo } from 'react';
+import axios from 'axios';
 
 export const preloadThread = async (userId: string, threadId: string, connectionId: string) => {
   console.log(`🔄 Prefetching email ${threadId}...`);
@@ -15,6 +15,7 @@ export const preloadThread = async (userId: string, threadId: string, connection
 };
 
 type FetchEmailsTuple = [
+  connectionId: string,
   folder: string,
   q?: string,
   max?: number,
@@ -24,6 +25,7 @@ type FetchEmailsTuple = [
 
 // TODO: improve the filters
 const fetchEmails = async ([
+  _,
   folder,
   q,
   max,
@@ -31,10 +33,16 @@ const fetchEmails = async ([
   pageToken,
 ]: FetchEmailsTuple): Promise<RawResponse> => {
   try {
-    const data = await getMails({ folder, q, max, labelIds, pageToken });
-    return data as RawResponse;
+    const searchParams = new URLSearchParams({
+      folder,
+      q,
+      max: max?.toString() ?? defaultPageSize.toString(),
+      pageToken: pageToken ?? '',
+    } as Record<string, string>);
+    const response = await axios.get<RawResponse>(`/api/driver?${searchParams.toString()}`);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching emails:", error);
+    console.error('Error fetching emails:', error);
     throw error;
   }
 };
@@ -42,10 +50,10 @@ const fetchEmails = async ([
 const fetchThread = async (args: any[]) => {
   const [_, id] = args;
   try {
-    const data = await getMail({ id });
-    return data;
+    const response = await axios.get<ParsedMessage[]>(`/api/driver/${id}`);
+    return response.data;
   } catch (error) {
-    console.error("Error fetching email:", error);
+    console.error('Error fetching email:', error);
     throw error;
   }
 };
@@ -58,35 +66,41 @@ interface RawResponse {
 }
 
 const getKey = (
-  pageIndex: number,
   previousPageData: RawResponse | null,
-  [folder, query, max, labelIds]: FetchEmailsTuple,
+  [connectionId, folder, query, max, labelIds]: FetchEmailsTuple,
 ): FetchEmailsTuple | null => {
-  if (previousPageData && !previousPageData.nextPageToken) return null; // reached the end
-
-  return [folder, query, max, labelIds, previousPageData?.nextPageToken];
+  if (previousPageData && !previousPageData.nextPageToken) return null; // reached the end);
+  return [connectionId, folder, query, max, labelIds, previousPageData?.nextPageToken];
 };
 
-export const useThreads = (folder: string, labelIds?: string[], query?: string, max?: number) => {
+// Deprecated, we move this to be prefetched on the server
+export const useThreads = () => {
+  const { folder } = useParams<{ folder: string }>();
+  const [searchValue] = useSearchValue();
   const { data: session } = useSession();
 
   const { data, error, size, setSize, isLoading, isValidating, mutate } = useSWRInfinite(
-    (pageIndex, previousPageData) => {
-      if (!session?.user.id) return null;
-      return getKey(pageIndex, previousPageData, [folder, query, max, labelIds]);
+    (_, previousPageData) => {
+      if (!session?.user.id || !session.connectionId) return null;
+      return getKey(previousPageData, [
+        session.connectionId,
+        folder,
+        searchValue.value, // Always apply search filter
+        defaultPageSize,
+      ]);
     },
     fetchEmails,
     {
-      persistSize: false,
-      revalidateIfStale: true,
-      revalidateAll: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
       revalidateOnMount: true,
-      revalidateFirstPage: true,
+      refreshInterval: 30000 * 2,
     },
   );
 
-  const threads = data ? data.flatMap((e) => e.threads) : [];
-  const isEmpty = data?.[0]?.threads.length === 0;
+  // Flatten threads from all pages and sort by receivedOn date (newest first)
+  const threads = useMemo(() => (data ? data.flatMap((e) => e.threads) : []), [data]);
+  const isEmpty = useMemo(() => threads.length === 0, [threads]);
   const isReachingEnd = isEmpty || (data && !data[data.length - 1]?.nextPageToken);
   const loadMore = async () => {
     if (isLoading || isValidating) return;
@@ -107,12 +121,14 @@ export const useThreads = (folder: string, labelIds?: string[], query?: string, 
   };
 };
 
-export const useThread = (id: string) => {
+export const useThread = (threadId: string | null) => {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const id = threadId ? threadId : searchParams.get('threadId');
 
   const { data, isLoading, error, mutate } = useSWR<ParsedMessage[]>(
-    session?.user.id ? [session.user.id, id, session.connectionId] : null,
-    fetchThread as any,
+    session?.user.id && id ? [session.user.id, id, session.connectionId] : null,
+    fetchThread,
   );
 
   const hasUnread = useMemo(() => data?.some((e) => e.unread), [data]);

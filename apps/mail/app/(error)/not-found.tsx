@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { AlertCircle, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 export function NotFound() {
   const router = useRouter();
@@ -22,9 +22,9 @@ export function NotFound() {
         {/* Message */}
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold tracking-tight">
-            {t("pages.error.notFound.title")}
+            {t('pages.error.notFound.title')}
           </h2>
-          <p className="text-muted-foreground">{t("pages.error.notFound.description")}</p>
+          <p className="text-muted-foreground">{t('pages.error.notFound.description')}</p>
         </div>
 
         {/* Buttons */}
@@ -35,7 +35,7 @@ export function NotFound() {
             className="text-muted-foreground gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            {t("pages.error.notFound.goBack")}
+            {t('pages.error.notFound.goBack')}
           </Button>
         </div>
       </div>

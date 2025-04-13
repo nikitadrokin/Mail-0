@@ -1,7 +1,7 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
-import { formatFileSize, getFileIcon } from "@/lib/utils";
-import { Paperclip } from "lucide-react";
-import { Attachment } from "@/types";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { formatFileSize, getFileIcon } from '@/lib/utils';
+import { Paperclip } from 'lucide-react';
+import { Attachment } from '@/types';
 
 type Props = {
   attachments: Attachment[];
@@ -44,7 +44,7 @@ const AttachmentsAccordion = ({ attachments, setSelectedAttachment }: Props) => 
                       }
                     >
                       <div className="bg-muted flex h-24 items-center justify-center">
-                        {attachment.mimeType.includes("image") ? (
+                        {attachment.mimeType.includes('image') ? (
                           (() => {
                             if (!attachment.body) return null;
 
@@ -57,8 +57,8 @@ const AttachmentsAccordion = ({ attachments, setSelectedAttachment }: Props) => 
                                 className="max-h-full max-w-full object-cover"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
-                                  target.style.display = "none";
-                                  console.error("Failed to load image:", attachment.filename);
+                                  target.style.display = 'none';
+                                  console.error('Failed to load image:', attachment.filename);
                                 }}
                               />
                             );

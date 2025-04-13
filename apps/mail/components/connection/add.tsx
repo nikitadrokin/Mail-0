@@ -5,13 +5,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import { emailProviders } from "@/lib/constants";
-import { Plus, UserPlus } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { Button } from "../ui/button";
-import { motion } from "motion/react";
-import { cn } from "@/lib/utils";
+} from '../ui/dialog';
+import { emailProviders } from '@/lib/constants';
+import { Plus, UserPlus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Button } from '../ui/button';
+import { motion } from 'motion/react';
+import { cn } from '@/lib/utils';
 
 export const AddConnectionDialog = ({
   children,
@@ -29,20 +29,20 @@ export const AddConnectionDialog = ({
       <DialogTrigger asChild>
         {children || (
           <Button
-            size={"dropdownItem"}
-            variant={"dropdownItem"}
-            className={cn("w-full justify-start gap-2", className)}
+            size={'dropdownItem'}
+            variant={'dropdownItem'}
+            className={cn('w-full justify-start gap-2', className)}
           >
             <UserPlus size={16} strokeWidth={2} className="opacity-60" aria-hidden="true" />
-            <p className="text-[13px] opacity-60">{t("pages.settings.connections.addEmail")}</p>
+            <p className="text-[13px] opacity-60">{t('pages.settings.connections.addEmail')}</p>
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("pages.settings.connections.connectEmail")}</DialogTitle>
+          <DialogTitle>{t('pages.settings.connections.connectEmail')}</DialogTitle>
           <DialogDescription>
-            {t("pages.settings.connections.connectEmailDescription")}
+            {t('pages.settings.connections.connectEmailDescription')}
           </DialogDescription>
         </DialogHeader>
         <motion.div
@@ -84,7 +84,7 @@ export const AddConnectionDialog = ({
               className="h-24 flex-col items-center justify-center gap-2 border-dashed"
             >
               <Plus className="h-12 w-12" />
-              <span className="text-xs">{t("pages.settings.connections.moreComingSoon")}</span>
+              <span className="text-xs">{t('pages.settings.connections.moreComingSoon')}</span>
             </Button>
           </motion.div>
         </motion.div>

@@ -1,18 +1,20 @@
-import { SettingsGearIcon } from "@/components/icons/animated/settings-gear";
-import { CheckCheckIcon } from "@/components/icons/animated/check-check";
-import { ArrowLeftIcon } from "@/components/icons/animated/arrow-left";
-import { BookTextIcon } from "@/components/icons/animated/book-text";
-import { ShieldCheckIcon } from "@/components/icons/animated/shield";
-import { KeyboardIcon } from "@/components/icons/animated/keyboard";
-import { SparklesIcon } from "@/components/icons/animated/sparkles";
-import { ArchiveIcon } from "@/components/icons/animated/archive";
-import { DeleteIcon } from "@/components/icons/animated/trash";
-import { UsersIcon } from "@/components/icons/animated/users";
-import { InboxIcon } from "@/components/icons/animated/inbox";
-import { XIcon } from "@/components/icons/animated/x";
-import { NestedKeyOf } from "next-intl";
-import { MessageKeys } from "next-intl";
+import { MessageSquareIcon } from '@/components/icons/animated/message-square';
+import { SettingsGearIcon } from '@/components/icons/animated/settings-gear';
+import { CheckCheckIcon } from '@/components/icons/animated/check-check';
+import { ArrowLeftIcon } from '@/components/icons/animated/arrow-left';
+import { BookTextIcon } from '@/components/icons/animated/book-text';
+import { ShieldCheckIcon } from '@/components/icons/animated/shield';
+import { KeyboardIcon } from '@/components/icons/animated/keyboard';
+import { SparklesIcon } from '@/components/icons/animated/sparkles';
+import { ArchiveIcon } from '@/components/icons/animated/archive';
+import { DeleteIcon } from '@/components/icons/animated/trash';
+import { UsersIcon } from '@/components/icons/animated/users';
+import { InboxIcon } from '@/components/icons/animated/inbox';
+import { XIcon } from '@/components/icons/animated/x';
+import { NestedKeyOf } from 'next-intl';
+import { MessageKeys } from 'next-intl';
 export interface NavItem {
+  id?: string;
   title: string;
   url: string;
   icon: React.ComponentType<any>;
@@ -20,6 +22,7 @@ export interface NavItem {
   isBackButton?: boolean;
   isSettingsButton?: boolean;
   disabled?: boolean;
+  target?: string;
 }
 export type MessageKey = MessageKeys<IntlMessages, NestedKeyOf<IntlMessages>>;
 
@@ -36,48 +39,61 @@ interface NavConfig {
 // ! items title has to be a message key (check messages/en.json)
 export const navigationConfig: Record<string, NavConfig> = {
   mail: {
-    path: "/mail",
+    path: '/mail',
     sections: [
       {
-        title: "",
+        title: '',
         items: [
           {
-            title: "navigation.sidebar.inbox",
-            url: "/mail/inbox",
+            id: 'inbox',
+            title: 'navigation.sidebar.inbox',
+            url: '/mail/inbox',
             icon: InboxIcon,
           },
           {
-            title: "navigation.sidebar.drafts",
-            url: "/mail/draft",
+            id: 'drafts',
+            title: 'navigation.sidebar.drafts',
+            url: '/mail/draft',
             icon: BookTextIcon,
           },
           {
-            title: "navigation.sidebar.sent",
-            url: "/mail/sent",
+            id: 'sent',
+            title: 'navigation.sidebar.sent',
+            url: '/mail/sent',
             icon: CheckCheckIcon,
           },
           {
-            title: "navigation.sidebar.spam",
-            url: "/mail/spam",
+            id: 'spam',
+            title: 'navigation.sidebar.spam',
+            url: '/mail/spam',
             icon: XIcon,
           },
           {
-            title: "navigation.sidebar.archive",
-            url: "/mail/archive",
+            id: 'archive',
+            title: 'navigation.sidebar.archive',
+            url: '/mail/archive',
             icon: ArchiveIcon,
-            disabled: true,
           },
           {
-            title: "navigation.sidebar.bin",
-            url: "/mail/bin",
+            id: 'bin',
+            title: 'navigation.sidebar.bin',
+            url: '/mail/bin',
             icon: DeleteIcon,
-            disabled: true,
+            disabled: false,
           },
           {
-            title: "navigation.sidebar.settings",
-            url: "/settings/general",
+            id: 'settings',
+            title: 'navigation.sidebar.settings',
+            url: '/settings/general',
             icon: SettingsGearIcon,
             isSettingsButton: true,
+          },
+          {
+            id: 'feedback',
+            title: 'navigation.sidebar.feedback',
+            url: 'https://feedback.0.email',
+            icon: MessageSquareIcon,
+            target: '_blank',
           },
         ],
       },
@@ -110,55 +126,53 @@ export const navigationConfig: Record<string, NavConfig> = {
       //     },
       //   ],
       // },
-      // {
-      //   title: "Advanced",
-      //   items: [
-      //     {
-      //       title: "Settings",
-      //       url: "/settings",
-      //       icon: SettingsGearIcon,
-      //     },
-      //   ],
-      // },
     ],
   },
   settings: {
-    path: "/settings",
+    path: '/settings',
     sections: [
       {
-        title: "Settings",
+        title: 'Settings',
         items: [
           {
-            title: "common.actions.back",
-            url: "/mail",
+            title: 'common.actions.back',
+            url: '/mail',
             icon: ArrowLeftIcon,
             isBackButton: true,
           },
 
           {
-            title: "navigation.settings.general",
-            url: "/settings/general",
+            title: 'navigation.settings.general',
+            url: '/settings/general',
             icon: SettingsGearIcon,
           },
           {
-            title: "navigation.settings.connections",
-            url: "/settings/connections",
+            title: 'navigation.settings.connections',
+            url: '/settings/connections',
             icon: UsersIcon,
           },
           {
-            title: "navigation.settings.security",
-            url: "/settings/security",
+            title: 'navigation.settings.security',
+            url: '/settings/security',
             icon: ShieldCheckIcon,
+            disabled: true,
           },
           {
-            title: "navigation.settings.appearance",
-            url: "/settings/appearance",
+            title: 'navigation.settings.appearance',
+            url: '/settings/appearance',
             icon: SparklesIcon,
           },
           {
-            title: "navigation.settings.shortcuts",
-            url: "/settings/shortcuts",
+            title: 'navigation.settings.signatures',
+            url: '/settings/signatures',
+            icon: MessageSquareIcon,
+            disabled: true,
+          },
+          {
+            title: 'navigation.settings.shortcuts',
+            url: '/settings/shortcuts',
             icon: KeyboardIcon,
+            disabled: true,
           },
           // {
           //   title: "Notifications",

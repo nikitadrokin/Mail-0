@@ -11,7 +11,9 @@ const LANGUAGES = {
   pl: "Polish",
   pt: "Portuguese",
   ru: "Russian",
-  tr: "Turkish"
+  tr: "Turkish",
+  lv: "Latvian",
+  hu: "Hungarian",
 } as const;
 
 export type Locale = keyof typeof LANGUAGES;

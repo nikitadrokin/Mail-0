@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Form,
@@ -7,16 +7,16 @@ import {
   FormField,
   FormItem,
   FormLabel,
-} from "@/components/ui/form";
-import { SettingsCard } from "@/components/settings/settings-card";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
-import { KeyRound } from "lucide-react";
-import { useState } from "react";
-import * as z from "zod";
+} from '@/components/ui/form';
+import { SettingsCard } from '@/components/settings/settings-card';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
+import { useForm } from 'react-hook-form';
+import { KeyRound } from 'lucide-react';
+import { useState } from 'react';
+import * as z from 'zod';
 
 const formSchema = z.object({
   twoFactorAuth: z.boolean(),
@@ -48,31 +48,31 @@ export default function SecurityPage() {
   return (
     <div className="grid gap-6">
       <SettingsCard
-        title={t("pages.settings.security.title")}
-        description={t("pages.settings.security.description")}
+        title={t('pages.settings.security.title')}
+        description={t('pages.settings.security.description')}
         footer={
           <div className="flex gap-4">
-            <Button variant="destructive">{t("pages.settings.security.deleteAccount")}</Button>
+            <Button variant="destructive">{t('pages.settings.security.deleteAccount')}</Button>
             <Button type="submit" form="security-form" disabled={isSaving}>
-              {isSaving ? t("common.actions.saving") : t("common.actions.saveChanges")}
+              {isSaving ? t('common.actions.saving') : t('common.actions.saveChanges')}
             </Button>
           </div>
         }
       >
         <Form {...form}>
           <form id="security-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="flex w-full items-center gap-5">
+            <div className="flex flex-col md:flex-row w-full items-center gap-5">
               <FormField
                 control={form.control}
                 name="twoFactorAuth"
                 render={({ field }) => (
-                  <FormItem className="bg-popover flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="bg-popover flex flex-row items-center justify-between rounded-lg border p-4 w-full md:w-auto">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">
-                        {t("pages.settings.security.twoFactorAuth")}
+                        {t('pages.settings.security.twoFactorAuth')}
                       </FormLabel>
                       <FormDescription>
-                        {t("pages.settings.security.twoFactorAuthDescription")}
+                        {t('pages.settings.security.twoFactorAuthDescription')}
                       </FormDescription>
                     </div>
                     <FormControl className="ml-4">
@@ -85,13 +85,13 @@ export default function SecurityPage() {
                 control={form.control}
                 name="loginNotifications"
                 render={({ field }) => (
-                  <FormItem className="bg-popover flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="bg-popover flex flex-row items-center justify-between rounded-lg border p-4 w-full md:w-auto">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">
-                        {t("pages.settings.security.loginNotifications")}
+                        {t('pages.settings.security.loginNotifications')}
                       </FormLabel>
                       <FormDescription>
-                        {t("pages.settings.security.loginNotificationsDescription")}
+                        {t('pages.settings.security.loginNotificationsDescription')}
                       </FormDescription>
                     </div>
                     <FormControl className="ml-4">

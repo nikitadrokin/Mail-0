@@ -1,139 +1,73 @@
 import {
   Archive,
   ArchiveX,
+  Expand,
   Forward,
-  MoreVertical,
+  MailOpen,
   Reply,
   ReplyAll,
-  Maximize2,
-  Minimize2,
-} from "lucide-react";
-import { DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  X,
+  Trash,
+} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useSearchParams, useParams } from 'next/navigation';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { MoreVerticalIcon } from "../icons/animated/more-vertical";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { ArchiveIcon } from "../icons/animated/archive";
-import { ExpandIcon } from "../icons/animated/expand";
-import { MailDisplaySkeleton } from "./mail-skeleton";
-import { ReplyIcon } from "../icons/animated/reply";
-import { Button } from "@/components/ui/button";
-import { useThread } from "@/hooks/use-threads";
-import { XIcon } from "../icons/animated/x";
-import ReplyCompose from "./reply-composer";
-import { useTranslations } from "next-intl";
-import MailDisplay from "./mail-display";
-import { useMail } from "./use-mail";
-import { cn } from "@/lib/utils";
-import React from "react";
+import { moveThreadsTo, ThreadDestination } from '@/lib/thread-actions';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useThread, useThreads } from '@/hooks/use-threads';
+import { MailDisplaySkeleton } from './mail-skeleton';
+import { Button } from '@/components/ui/button';
+import { markAsRead, markAsUnread } from '@/actions/mail';
+import { modifyLabels } from '@/actions/mail';
+import { useStats } from '@/hooks/use-stats';
+import ThreadSubject from './thread-subject';
+import ReplyCompose from './reply-composer';
+import { useTranslations } from 'next-intl';
+import { useMail } from '../mail/use-mail';
+import { cn, FOLDERS } from '@/lib/utils';
+import MailDisplay from './mail-display';
+import { ParsedMessage } from '@/types';
+import { Inbox } from 'lucide-react';
+import { toast } from 'sonner';
+
 
 interface ThreadDisplayProps {
-  mail: any;
+  threadParam?: any;
   onClose?: () => void;
   isMobile?: boolean;
+  messages?: ParsedMessage[];
+  id?: string;
 }
 
-export function ThreadDemo({ mail: emailData, onClose, isMobile }: ThreadDisplayProps) {
+export function ThreadDemo({ messages, isMobile }: ThreadDisplayProps) {
   const isFullscreen = false;
+  const [mail, setMail] = useMail();
 
   return (
     <div
       className={cn(
-        "flex flex-col",
-        isFullscreen ? "h-screen" : isMobile ? "h-full" : "h-[calc(100vh-2rem)]",
+        'flex flex-col',
+        isFullscreen ? 'h-screen' : isMobile ? 'h-full' : 'h-[calc(100vh-2rem)]',
       )}
     >
       <div
         className={cn(
-          "bg-offsetLight dark:bg-offsetDark relative flex flex-col overflow-hidden transition-all duration-300",
-          isMobile ? "h-full" : "h-full",
-          !isMobile && !isFullscreen && "rounded-r-lg",
-          isFullscreen ? "fixed inset-0 z-50" : "",
+          'bg-offsetLight dark:bg-offsetDark relative flex flex-col overflow-hidden transition-all duration-300',
+          isMobile ? 'h-full' : 'h-full',
+          !isMobile && !isFullscreen && 'rounded-r-lg',
+          isFullscreen ? 'fixed inset-0 z-50' : '',
         )}
       >
-        <div className="flex flex-shrink-0 items-center border-b p-2">
-          <div className="flex flex-1 items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" className="md:h-fit md:px-2" disabled={!emailData}>
-                  <XIcon className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Close</TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" className="md:h-fit md:px-2" disabled={!emailData}>
-                  {isFullscreen ? (
-                    <ExpandIcon className="h-4 w-4" />
-                  ) : (
-                    <ExpandIcon className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                  </span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" className="md:h-fit md:px-2" disabled={!emailData}>
-                  <ArchiveIcon className="relative top-0.5 h-4 w-4" />
-                  <span className="sr-only">Archive</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Archive</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" className="md:h-fit md:px-2" disabled={!emailData}>
-                  <ReplyIcon className="h-4 w-4" />
-                  <span className="sr-only">Reply</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Reply</TooltipContent>
-            </Tooltip>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="md:h-fit md:px-2" disabled={!emailData}>
-                  <MoreVerticalIcon className="h-4 w-4" />
-                  <span className="sr-only">More</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <ArchiveX className="mr-2 h-4 w-4" /> Move to spam
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ReplyAll className="mr-2 h-4 w-4" /> Reply all
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Forward className="mr-2 h-4 w-4" /> Forward
-                </DropdownMenuItem>
-                <DropdownMenuItem>Mark as unread</DropdownMenuItem>
-                <DropdownMenuItem>Add label</DropdownMenuItem>
-                <DropdownMenuItem>Mute thread</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <ScrollArea className="flex-1" type="scroll">
             <div className="pb-4">
-              {[...(emailData || [])].reverse().map((message, index) => (
+              {[...(messages || [])].reverse().map((message, index) => (
                 <div
                   key={message.id}
                   className={cn(
-                    "transition-all duration-200",
-                    index > 0 && "border-border border-t",
+                    'transition-all duration-200',
+                    index > 0 && 'border-border border-t',
                   )}
                 >
                   <MailDisplay
@@ -148,8 +82,10 @@ export function ThreadDemo({ mail: emailData, onClose, isMobile }: ThreadDisplay
               ))}
             </div>
           </ScrollArea>
-          <div className="relative md:top-2 flex-shrink-0">
-            <ReplyCompose emailData={emailData} isOpen={false} setIsOpen={() => {}} />
+          <div className="relative flex-shrink-0 md:top-1">
+            <ReplyCompose 
+                mode={mail.forwardComposerOpen ? 'forward' : 'reply'} 
+            />
           </div>
         </div>
       </div>
@@ -176,127 +112,185 @@ function ThreadActionButton({
   const iconRef = useRef<any>(null);
 
   return (
-    <Button
-      disabled={disabled}
-      onClick={onClick}
-      variant="ghost"
-      className={cn("md:h-fit md:px-2", className)}
-      onMouseEnter={() => iconRef.current?.startAnimation?.()}
-      onMouseLeave={() => iconRef.current?.stopAnimation?.()}
-    >
-      <Icon ref={iconRef} className="h-4 w-4" />
-      <span className="sr-only">{label}</span>
-    </Button>
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            disabled={disabled}
+            onClick={onClick}
+            variant="ghost"
+            className={cn('md:h-fit md:px-2', className)}
+            onMouseEnter={() => iconRef.current?.startAnimation?.()}
+            onMouseLeave={() => iconRef.current?.stopAnimation?.()}
+          >
+            <Icon ref={iconRef} className="h-4 w-4" />
+            <span className="sr-only">{label}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
-export function ThreadDisplay({ mail, onClose, isMobile }: ThreadDisplayProps) {
-  const [, setMail] = useMail();
-  const { data: emailData, isLoading } = useThread(mail ?? "");
+export function ThreadDisplay({ threadParam, onClose, isMobile, id }: ThreadDisplayProps) {
+  const { data: emailData, isLoading, mutate: mutateThread } = useThread(id ?? null);
+  const { mutate: mutateThreads } = useThreads();
+  const searchParams = useSearchParams();
   const [isMuted, setIsMuted] = useState(false);
-  const [isReplyOpen, setIsReplyOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mail, setMail] = useMail();
   const t = useTranslations();
+  const { mutate: mutateStats } = useStats();
+  const { folder } = useParams<{ folder: string }>();
+  const threadIdParam = searchParams.get('threadId');
+  const threadId = threadParam ?? threadIdParam ?? '';
 
-  const moreVerticalIconRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (emailData?.[0]) {
-      setIsMuted(emailData[0].unread ?? false);
-    }
+  // Check if thread contains any images (excluding sender avatars)
+  const hasImages = useMemo(() => {
+    if (!emailData) return false;
+    return emailData.some(message => {
+      const hasAttachments = message.attachments?.some(attachment => 
+        attachment.mimeType?.startsWith('image/')
+      );
+      const hasInlineImages = message.processedHtml?.includes('<img') && 
+        !message.processedHtml.includes('data:image/svg+xml;base64'); // Exclude avatar SVGs
+      return hasAttachments || hasInlineImages;
+    });
   }, [emailData]);
 
+  /**
+   * Mark email as read if it's unread, if there are no unread emails, mark the current thread as read
+   */
+  useEffect(() => {
+    if (!emailData || !id) return;
+    const unreadEmails = emailData.filter(e => e.unread);
+    if (unreadEmails.length === 0) {
+      console.log('Marking email as read:', id);
+      markAsRead({ ids: [id] }).catch((error) => {
+        console.error('Failed to mark email as read:', error);
+        toast.error(t('common.mail.failedToMarkAsRead'));
+      }).then(() => Promise.all([mutateThread(), mutateThreads()]))
+    } else {
+      console.log('Marking email as read:', id, ...unreadEmails.map(e => e.id));
+      const ids = [id, ...unreadEmails.map(e => e.id)]
+      markAsRead({ ids }).catch((error) => {
+        console.error('Failed to mark email as read:', error);
+        toast.error(t('common.mail.failedToMarkAsRead'));
+      }).then(() => Promise.all([mutateThread(), mutateThreads()]))
+    }
+  }, [emailData, id])
+
+  const isInArchive = folder === FOLDERS.ARCHIVE;
+  const isInSpam = folder === FOLDERS.SPAM;
+  const isInBin = folder === FOLDERS.BIN;
   const handleClose = useCallback(() => {
+    // Reset reply composer state when closing thread display
+    setMail((prev) => ({
+      ...prev,
+      replyComposerOpen: false,
+      forwardComposerOpen: false
+    }));
     onClose?.();
-    setMail((m) => ({ ...m, selected: null }));
   }, [onClose, setMail]);
+
+  const moveThreadTo = useCallback(
+    async (destination: ThreadDestination) => {
+      const promise = async () => {
+        await moveThreadsTo({
+          threadIds: [threadId],
+          currentFolder: folder,
+          destination,
+        });
+        await Promise.all([mutateStats(), mutateThreads()]);
+        handleClose();
+      };
+
+      toast.promise(promise(), {
+        loading: t('common.actions.moving'),
+        success:
+          destination === 'inbox'
+            ? t('common.actions.movedToInbox')
+            : destination === 'spam'
+              ? t('common.actions.movedToSpam')
+              : destination === 'bin'
+                ? t('common.actions.movedToBin')
+                : t('common.actions.archived'),
+        error: t('common.actions.failedToMove'),
+      });
+    },
+    [threadId, folder, mutateStats, mutateThreads, handleClose, t],
+  );
+
+  const handleMarkAsUnread = useCallback(async () => {
+    if (!emailData || !threadId) return;
+
+    const promise = async () => {
+      const result = await markAsUnread({ ids: [threadId] });
+      if (!result.success) throw new Error('Failed to mark as unread');
+
+      setMail((prev) => ({ ...prev, bulkSelected: [] }));
+      await Promise.all([mutateStats(), mutateThreads()]);
+      handleClose();
+    };
+
+    toast.promise(promise(), {
+      loading: t('common.actions.markingAsUnread'),
+      success: t('common.mail.markedAsUnread'),
+      error: t('common.mail.failedToMarkAsUnread'),
+    });
+  }, [emailData, threadId, mutateStats, mutateThreads, t, handleClose, setMail]);
+
+  const handleFavourites = async () => {
+    if (!emailData || !threadId) return;
+    const done = Promise.all([mutateThreads()]);
+    if (emailData[0]?.tags?.includes('STARRED')) {
+      toast.promise(
+        modifyLabels({ threadId: [threadId], removeLabels: ['STARRED'] }).then(() => done),
+        {
+          success: t('common.actions.removedFromFavorites'),
+          loading: t('common.actions.removingFromFavorites'),
+          error: t('common.actions.failedToRemoveFromFavorites'),
+        },
+      );
+    } else {
+      toast.promise(
+        modifyLabels({ threadId: [threadId], addLabels: ['STARRED'] }).then(() => done),
+        {
+          success: t('common.actions.addedToFavorites'),
+          loading: t('common.actions.addingToFavorites'),
+          error: t('common.actions.failedToAddToFavorites'),
+        },
+      );
+    }
+  };
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         handleClose();
       }
     };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
   }, [handleClose]);
 
-  if (isLoading || !emailData)
+  if (!emailData || isLoading)
     return (
       <div
         className={cn(
-          "flex flex-col",
-          isFullscreen ? "h-screen" : isMobile ? "h-full" : "h-[calc(100vh-2rem)]",
+          'flex flex-col',
+          isFullscreen ? 'h-screen' : isMobile ? 'h-full' : 'h-[calc(100vh-2rem)]',
         )}
       >
         <div
           className={cn(
-            "bg-offsetLight dark:bg-offsetDark relative flex flex-col overflow-hidden transition-all duration-300",
-            isMobile ? "h-full" : "h-full",
-            !isMobile && !isFullscreen && "rounded-r-lg",
-            isFullscreen ? "fixed inset-0 z-50" : "",
+            'bg-offsetLight dark:bg-offsetDark relative flex flex-col overflow-hidden transition-all duration-300',
+            isMobile ? 'h-full' : 'h-full',
+            !isMobile && !isFullscreen && 'rounded-r-lg',
+            isFullscreen ? 'fixed inset-0 z-50' : '',
           )}
         >
-          <div className="flex flex-shrink-0 items-center border-b px-1 pb-1 md:px-3 md:pb-2 md:pt-[10px]">
-            <div className="flex flex-1 items-center">
-              <ThreadActionButton
-                icon={XIcon}
-                label={t("common.actions.close")}
-                onClick={handleClose}
-              />
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2 md:gap-6">
-              <ThreadActionButton
-                icon={isFullscreen ? ExpandIcon : ExpandIcon}
-                label={
-                  isFullscreen
-                    ? t("common.threadDisplay.exitFullscreen")
-                    : t("common.threadDisplay.enterFullscreen")
-                }
-                onClick={() => setIsFullscreen(!isFullscreen)}
-              />
-
-              <ThreadActionButton
-                icon={ArchiveIcon}
-                label={t("common.threadDisplay.archive")}
-                disabled={true}
-                className="relative top-0.5"
-              />
-
-              <ThreadActionButton
-                icon={ReplyIcon}
-                label={t("common.threadDisplay.reply")}
-                disabled={true}
-              />
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="h-8 w-8 p-0 md:h-fit md:w-auto md:px-2"
-                    disabled={true}
-                  >
-                    <MoreVerticalIcon className="h-4 w-4" />
-                    <span className="sr-only">{t("common.threadDisplay.moreOptions")}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
-                    <ArchiveX className="mr-2 h-4 w-4" /> {t("common.threadDisplay.moveToSpam")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <ReplyAll className="mr-2 h-4 w-4" /> {t("common.threadDisplay.replyAll")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Forward className="mr-2 h-4 w-4" /> {t("common.threadDisplay.forward")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>{t("common.threadDisplay.markAsUnread")}</DropdownMenuItem>
-                  <DropdownMenuItem>{t("common.threadDisplay.addLabel")}</DropdownMenuItem>
-                  <DropdownMenuItem>{t("common.threadDisplay.muteThread")}</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <ScrollArea className="h-full flex-1" type="auto">
               <div className="pb-4">
@@ -311,117 +305,168 @@ export function ThreadDisplay({ mail, onClose, isMobile }: ThreadDisplayProps) {
   return (
     <div
       className={cn(
-        "flex flex-col",
-        isFullscreen ? "h-screen" : isMobile ? "h-full" : "h-[calc(100vh-2rem)]",
+        'flex flex-col',
+        isFullscreen ? 'h-screen' : isMobile ? 'h-full' : 'h-[calc(100vh-2rem)]',
       )}
     >
       <div
         className={cn(
-          "bg-offsetLight dark:bg-offsetDark relative flex flex-col overflow-hidden transition-all duration-300",
-          isMobile ? "h-full" : "h-full",
-          !isMobile && !isFullscreen && "rounded-r-lg",
-          isFullscreen ? "fixed inset-0 z-50" : "",
+          'bg-offsetLight dark:bg-offsetDark relative flex flex-col transition-all duration-300',
+          isMobile ? 'h-full' : 'h-full',
+          !isMobile && !isFullscreen && 'rounded-r-lg',
+          isFullscreen ? 'fixed inset-0 z-50' : '',
         )}
       >
         <div className="flex flex-shrink-0 items-center border-b px-1 pb-1 md:px-3 md:pb-2 md:pt-[10px]">
-          <div className="flex flex-1 items-center">
+          <div className="flex flex-1 items-center gap-2">
             <ThreadActionButton
-              icon={XIcon}
-              label={t("common.actions.close")}
-              disabled={!emailData}
+              icon={X}
+              label={t('common.actions.close')}
               onClick={handleClose}
             />
+            <ThreadSubject subject={emailData[0]?.subject} />
           </div>
-          <div className="flex items-center md:gap-6">
+          <div className="flex items-center md:gap-2">
+            {/* disable notes for now, it's still a bit buggy and not ready for prod. */}
+            {/* <NotesPanel threadId={threadId} /> */}
             <ThreadActionButton
-              icon={isFullscreen ? ExpandIcon : ExpandIcon}
+              icon={Expand}
               label={
                 isFullscreen
-                  ? t("common.threadDisplay.exitFullscreen")
-                  : t("common.threadDisplay.enterFullscreen")
+                  ? t('common.threadDisplay.exitFullscreen')
+                  : t('common.threadDisplay.enterFullscreen')
               }
               disabled={!emailData}
               onClick={() => setIsFullscreen(!isFullscreen)}
             />
-            <ThreadActionButton
-              icon={ArchiveIcon}
-              label={t("common.threadDisplay.archive")}
-              disabled={!emailData}
-              className="relative top-0.5"
-            />
-            <ThreadActionButton
-              icon={ReplyIcon}
-              label={t("common.threadDisplay.reply")}
-              disabled={!emailData}
-              onClick={() => setIsReplyOpen(true)}
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="md:h-fit md:px-2"
+            {isInSpam || isInArchive || isInBin ? (
+              <ThreadActionButton
+                icon={Inbox}
+                label={t('common.mail.moveToInbox')}
+                disabled={!emailData}
+                onClick={() => moveThreadTo('inbox')}
+              />
+            ) : (
+              <>
+                <ThreadActionButton
+                  icon={Archive}
+                  label={t('common.threadDisplay.archive')}
                   disabled={!emailData}
-                  onMouseEnter={() => moreVerticalIconRef.current?.startAnimation?.()}
-                  onMouseLeave={() => moreVerticalIconRef.current?.stopAnimation?.()}
-                >
-                  <MoreVerticalIcon ref={moreVerticalIconRef} className="h-4 w-4" />
-                  <span className="sr-only">{t("common.threadDisplay.moreOptions")}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <ArchiveX className="mr-2 h-4 w-4" /> {t("common.threadDisplay.moveToSpam")}
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ReplyAll className="mr-2 h-4 w-4" /> {t("common.threadDisplay.replyAll")}
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Forward className="mr-2 h-4 w-4" /> {t("common.threadDisplay.forward")}
-                </DropdownMenuItem>
-                <DropdownMenuItem>{t("common.threadDisplay.markAsUnread")}</DropdownMenuItem>
-                <DropdownMenuItem>{t("common.threadDisplay.addLabel")}</DropdownMenuItem>
-                <DropdownMenuItem>{t("common.threadDisplay.muteThread")}</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  onClick={() => moveThreadTo('archive')}
+                />
+                <ThreadActionButton
+                  icon={ArchiveX}
+                  label={t('common.threadDisplay.moveToSpam')}
+                  disabled={!emailData}
+                  onClick={() => moveThreadTo('spam')}
+                />
+                <ThreadActionButton
+                  icon={Trash}
+                  label={t('common.mail.moveToBin')}
+                  disabled={!emailData}
+                  onClick={() => moveThreadTo('bin')}
+                />
+              </>
+            )}
+            <ThreadActionButton
+              icon={MailOpen}
+              label={t('common.mail.markAsUnread')}
+              disabled={!emailData}
+              onClick={handleMarkAsUnread}
+            />
+            <ThreadActionButton
+              icon={Reply}
+              label={t('common.threadDisplay.reply')}
+              disabled={!emailData}
+              className={cn(mail.replyComposerOpen && "bg-primary/10")}
+              onClick={() => {
+                setMail((prev) => ({ 
+                  ...prev, 
+                  replyComposerOpen: true,
+                  replyAllComposerOpen: false,
+                  forwardComposerOpen: false 
+                }));
+              }}
+            />
+            <ThreadActionButton
+              icon={ReplyAll}
+              label={t('common.threadDisplay.replyAll')}
+              disabled={!emailData}
+              className={cn(mail.replyAllComposerOpen && "bg-primary/10")}
+              onClick={() => {
+                setMail((prev) => ({ 
+                  ...prev, 
+                  replyComposerOpen: false,
+                  replyAllComposerOpen: true,
+                  forwardComposerOpen: false 
+                }));
+              }}
+            />
+            <ThreadActionButton
+              icon={Forward}
+              label={t('common.threadDisplay.forward')}
+              disabled={!emailData}
+              className={cn(mail.forwardComposerOpen && "bg-primary/10")}
+              onClick={() => {
+                setMail((prev) => ({ 
+                  ...prev, 
+                  replyComposerOpen: false,
+                  replyAllComposerOpen: false,
+                  forwardComposerOpen: true 
+                }));
+              }}
+            />
           </div>
         </div>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col">
           <ScrollArea className="h-full flex-1" type="auto">
             <div className="pb-4">
-              {[...(emailData || [])].reverse().map((message, index) => (
+              {hasImages && !mail.showImages && (
+                <div className="bg-warning/10 border-warning/20 border rounded-lg p-4 m-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-warning">
+                      {t('common.mail.imagesHidden')}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setMail(prev => ({ ...prev, showImages: true }))}
+                    >
+                      {t('common.mail.showImages')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {(emailData || []).map((message, index) => (
                 <div
                   key={message.id}
                   className={cn(
-                    "transition-all duration-200",
-                    index > 0 && "border-border border-t",
+                    'transition-all duration-200',
+                    index > 0 && 'border-border border-t',
                   )}
                 >
                   <MailDisplay
                     emailData={message}
                     isFullscreen={isFullscreen}
                     isMuted={isMuted}
-                    isLoading={isLoading}
+                    isLoading={false}
                     index={index}
+                    totalEmails={emailData.length}
                   />
                 </div>
               ))}
             </div>
           </ScrollArea>
-          <div className={`relative ${isFullscreen ? "" : "top-1"} flex-shrink-0`}>
-            <ReplyCompose emailData={emailData} isOpen={isReplyOpen} setIsOpen={setIsReplyOpen} />
+          <div className={cn(
+            'relative z-10 mt-3 ',
+            isFullscreen ? 'mb-2' : ''
+          )}>
+            <ReplyCompose
+              mode={mail.forwardComposerOpen ? 'forward' : mail.replyAllComposerOpen ? 'replyAll' : 'reply'}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-<style jsx global>{`
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-`}</style>;

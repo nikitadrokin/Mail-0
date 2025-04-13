@@ -1,6 +1,6 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Download, ExternalLink } from "lucide-react";
-import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Download, ExternalLink } from 'lucide-react';
+import { Button } from '../ui/button';
 
 type Props = {
   selectedAttachment: null | {
@@ -51,34 +51,23 @@ const AttachmentDialog = ({ selectedAttachment, setSelectedAttachment }: Props) 
           </DialogTitle>
         </DialogHeader>
         <div className="bg-muted mt-4 flex min-h-[300px] items-center justify-center rounded-md p-4">
-          {selectedAttachment?.type === "image" ? (
+          {selectedAttachment?.type === 'image' ? (
             <img
-              src={selectedAttachment.url || "/placeholder.svg"}
+              src={selectedAttachment.url || '/placeholder.svg'}
               alt={selectedAttachment.name}
               className="max-h-[500px] max-w-full object-contain"
             />
           ) : (
             <div className="text-center">
               <div className="mb-4 text-6xl">
-                {selectedAttachment?.type === "pdf" && "📄"}
-                {selectedAttachment?.type === "excel" && "📊"}
-                {selectedAttachment?.type === "word" && "📝"}
+                {selectedAttachment?.type === 'pdf' && '📄'}
+                {selectedAttachment?.type === 'excel' && '📊'}
+                {selectedAttachment?.type === 'word' && '📝'}
                 {selectedAttachment &&
-                  !["pdf", "excel", "word", "image"].includes(selectedAttachment.type) &&
-                  "📎"}
+                  !['pdf', 'excel', 'word', 'image'].includes(selectedAttachment.type) &&
+                  '📎'}
               </div>
               <p className="text-muted-foreground">Preview not available</p>
-              <Button variant="outline" size="sm" className="mt-4" asChild>
-                <a
-                  href={selectedAttachment?.url}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Download className="mr-1 h-4 w-4" />
-                  Download File
-                </a>
-              </Button>
             </div>
           )}
         </div>
