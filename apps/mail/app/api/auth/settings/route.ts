@@ -1,8 +1,8 @@
 import { processIP, getRatelimitModule, checkRateLimit, getAuthenticatedUserId } from '../../utils';
+import { defaultUserSettings, userSettingsSchema } from '@zero/db/user_settings_default';
 import { NextRequest, NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
-import { connection } from '@zero/db/schema';
-import { IConnection } from '@/types';
+import { userSettings } from '@zero/db/schema';
 import { eq } from 'drizzle-orm';
 import { db } from '@zero/db';
 
@@ -10,7 +10,7 @@ export const GET = async (req: NextRequest) => {
   const userId = await getAuthenticatedUserId();
   const finalIp = processIP(req);
   const ratelimit = getRatelimitModule({
-    prefix: `ratelimit:get-connections-${userId}`,
+    prefix: `ratelimit:get-settings-${userId}`,
     limiter: Ratelimit.slidingWindow(60, '1m'),
   });
   const { success, headers } = await checkRateLimit(ratelimit, finalIp);
@@ -21,19 +21,16 @@ export const GET = async (req: NextRequest) => {
     );
   }
 
-  const connections = (await db
-    .select({
-      id: connection.id,
-      email: connection.email,
-      name: connection.name,
-      picture: connection.picture,
-      createdAt: connection.createdAt,
-    })
-    .from(connection)
-    .where(eq(connection.userId, userId))) as IConnection[];
+  const [result] = await db
+    .select()
+    .from(userSettings)
+    .where(eq(userSettings.userId, userId))
+    .limit(1);
 
-  return NextResponse.json(connections, {
-    status: 200,
-    headers,
-  });
+  // Returning null here when there are no settings so we can use the default settings with timezone from the browser
+  if (!result) return NextResponse.json({ settings: defaultUserSettings }, { status: 200 });
+
+  const settings = userSettingsSchema.parse(result.settings);
+
+  return NextResponse.json(settings);
 };
