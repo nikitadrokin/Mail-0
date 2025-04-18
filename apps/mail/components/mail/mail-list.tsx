@@ -220,18 +220,22 @@ const Thread = memo(
                         ) : null}
                       </p>
                       <MailLabels labels={threadLabels} />
-                      {Math.random() > 0.5 ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="rounded-md border border-dotted px-[5px] py-[1px] text-xs opacity-70">
-                              {Math.random() * 10}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent className="px-1 py-0 text-xs">
-                            {t('common.mail.replies', { count: Math.random() * 10 })}
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : null}
+                      {Math.random() > 0.5 &&
+                        (() => {
+                          const count = Math.floor(Math.random() * 10) + 1;
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="rounded-md border border-dotted px-[5px] py-[1px] text-xs opacity-70">
+                                  {count}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="px-1 py-0 text-xs">
+                                {t('common.mail.replies', { count })}
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })()}
                     </div>
                     {latestMessage.receivedOn ? (
                       <p
@@ -481,28 +485,6 @@ export const MailList = memo(({ isCompact }: MailListProps) => {
 
   const isKeyPressed = useKeyState();
 
-  const selectAll = useCallback(() => {
-    // If there are already items selected, deselect them all
-    if (mail.bulkSelected.length > 0) {
-      setMail((prev) => ({
-        ...prev,
-        bulkSelected: [],
-      }));
-      // toast.success(t('common.mail.deselectAll'));
-    }
-    // Otherwise select all items
-    else if (items.length > 0) {
-      // TODO: debug
-      const allIds = items.map((item) => item.id);
-      setMail((prev) => ({
-        ...prev,
-        bulkSelected: allIds,
-      }));
-    } else {
-      toast.info(t('common.mail.noEmailsToSelect'));
-    }
-  }, [items, setMail, mail.bulkSelected, t]);
-
   const getSelectMode = useCallback((): MailSelectMode => {
     if (isKeyPressed('Control') || isKeyPressed('Meta')) {
       return 'mass';
@@ -522,17 +504,10 @@ export const MailList = memo(({ isCompact }: MailListProps) => {
 
       const messageThreadId = message.threadId ?? message.id;
 
-      // Update local state immediately for optimistic UI
-      setMail((prev) => ({
-        ...prev,
-        replyComposerOpen: false,
-        forwardComposerOpen: false,
-      }));
-
       // Update URL param without navigation
       void setThreadId(messageThreadId);
     },
-    [handleMouseEnter, setThreadId, t, setMail],
+    [],
   );
 
   const isFiltering = searchValue.value.trim().length > 0;
