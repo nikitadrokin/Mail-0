@@ -15,10 +15,14 @@
       "loading": "Loading...",
       "featureNotImplemented": "This feature is not implemented yet",
       "moving": "Moving...",
+      "moved": "Moved",
       "movedToInbox": "Moved to inbox",
       "movingToInbox": "Moving to inbox...",
       "movedToSpam": "Moved to spam",
       "movingToSpam": "Moving to spam...",
+      "deletingMail": "Deleting mail...",
+      "failedToDeleteMail": "Failed to delete mail",
+      "deletedMail": "Mail deleted",
       "archiving": "Archiving...",
       "archived": "Archived",
       "failedToMove": "Failed to move message",
@@ -31,6 +35,7 @@
       "failedToModifyFavorites": "Failed to modify favorites",
       "movingToBin": "Moving to bin...",
       "movedToBin": "Moved to bin",
+      "Bin": "Bin",
       "failedToMoveToBin": "Failed to move to bin",
       "markingAsRead": "Marking as read...",
       "markingAsUnread": "Marking as unread...",
@@ -41,7 +46,8 @@
       "cancel": "Cancel",
       "save": "Save",
       "remove": "Remove",
-      "settings": "Settings"
+      "settings": "Settings",
+      "exitSelectionModeEsc": "Click or press ESC to exit selection mode"
     },
     "themes": {
       "dark": "Dark",
@@ -69,12 +75,13 @@
         "goToBin": "Go to Bin",
         "goToSettings": "Go to Settings",
         "newEmail": "New Email",
-        "composeMessage": "Compose message",
+        "composeMessage": "New Email",
         "searchEmails": "Search Emails",
         "toggleTheme": "Toggle Theme",
         "backToMail": "Back to Mail",
         "goToDocs": "Go to docs",
-        "helpWithShortcuts": "Help with shortcuts"
+        "helpWithShortcuts": "Help with shortcuts",
+        "commandPalette": "Command Palette"
       }
     },
     "searchBar": {
@@ -87,6 +94,7 @@
       "recipient": "Recipient",
       "sender": "Sender",
       "subject": "Subject",
+      "from": "From",
       "dateRange": "Date range",
       "category": "Category",
       "folder": "Folder",
@@ -108,7 +116,8 @@
       "documentation": "Documentation",
       "appTheme": "App Theme",
       "accounts": "Accounts",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "otherAccounts": "Other Accounts"
     },
     "mailCategories": {
       "primary": "Primary",
@@ -136,7 +145,7 @@
       "from": "From",
       "to": "To",
       "cc": "Cc",
-      "bcc":"Bcc",
+      "bcc": "Bcc",
       "date": "Date",
       "mailedBy": "Mailed-By",
       "signedBy": "Signed-By",
@@ -166,7 +175,9 @@
       "muteThread": "Mute thread",
       "favourites": "Favourites",
       "disableImages": "Hide Images",
-      "enableImages": "Show Images"
+      "enableImages": "Show Images",
+      "star": "Star",
+      "unstar": "Unstar"
     },
     "notes": {
       "title": "Notes",
@@ -245,9 +256,9 @@
       "failedToMarkAsUnread": "Failed to mark as unread",
       "selected": "{count} selected",
       "clearSelection": "Clear Selection",
-      "mute": "Mute",
       "moveToSpam": "Move to Spam",
       "moveToInbox": "Move to Inbox",
+      "deleteFromBin": "Delete from Bin",
       "unarchive": "Unarchive",
       "archive": "Archive",
       "moveToBin": "Move to Bin",
@@ -268,7 +279,20 @@
       "noLabelsAvailable": "No labels available",
       "loadMore": "Load more",
       "imagesHidden": "Images are hidden for security reasons",
-      "showImages": "Show Images"
+      "showImages": "Show Images",
+      "noEmails": "No emails available",
+      "noSearchResults": "No search results found",
+      "clearSearch": "Clear search",
+      "markAsImportant": "Mark as Important",
+      "unSubscribeFromAll": "Unsubscribe from all",
+      "starAll": "Star all",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "muted": "Muted",
+      "failedToMute": "Failed to mute",
+      "failedToUnmute": "Failed to unmute",
+      "archived": "Archived",
+      "failedToArchive": "Failed to archive"
     },
     "units": {
       "mb": "{amount} MB"
@@ -286,12 +310,15 @@
       "settings": "Settings"
     },
     "settings": {
-      "general": "General",
+      "general": "General Settings",
       "connections": "Connections",
       "security": "Security",
       "appearance": "Appearance",
       "signatures": "Signatures",
-      "shortcuts": "Shortcuts"
+      "shortcuts": "Shortcuts",
+      "labels": "Labels",
+      "dangerZone": "Danger Zone",
+      "deleteAccount": "Delete Account"
     }
   },
   "pages": {
@@ -391,15 +418,36 @@
           "markAsUnread": "Mark as Unread",
           "muteThread": "Mute Thread",
           "printEmail": "Print Email",
-          "archiveEmail": "Archive Email",
+          "archiveEmail": "Archive Thread",
           "markAsSpam": "Mark as Spam",
           "moveToFolder": "Move to Folder",
           "undoLastAction": "Undo Last Action",
           "viewEmailDetails": "View Email Details",
           "goToDrafts": "Go to Drafts",
           "expandEmailView": "Expand Email View",
-          "helpWithShortcuts": "Help with shortcuts"
+          "helpWithShortcuts": "Help with shortcuts",
+          "recordHotkey": "Record Hotkey",
+          "pressKeys": "Press keys",
+          "releaseKeys": "Release keys",
+          "selectAll": "Select All",
+          "commandPalette": "Command Palette",
+          "markAsRead": "Mark as Read",
+          "exitSelectionMode": "Exit Selection Mode"
         }
+      },
+      "labels": {
+        "title": "Labels",
+        "description": "Manage your labels for better organization of your emails."
+      },
+      "dangerZone": {
+        "title": "Danger Zone",
+        "description": "Permanently delete your account and all associated data.",
+        "warning": "This action cannot be undone.",
+        "confirmation": "Please type DELETE to confirm account deletion",
+        "deleteAccount": "Delete Account",
+        "deleting": "Deleting...",
+        "deleted": "Account deleted successfully",
+        "error": "Failed to delete account"
       }
     },
     "createEmail": {
@@ -410,6 +458,7 @@
       "addMore": "Add more",
       "dropFilesToAttach": "Drop files to attach",
       "writeYourMessageHere": "Write your message here...",
+      "emailSent": "Email sent",
       "emailSentSuccessfully": "Email sent successfully",
       "failedToSendEmail": "Failed to send email. Please try again.",
       "signature": {

@@ -7,17 +7,24 @@ on:
   workflow_dispatch:
     inputs:
       skip_localization:
-        description: "Skip Lingo.dev step"
-        type: "boolean"
+        description: 'Skip Lingo.dev step'
+        type: 'boolean'
         default: false
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   main:
-    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RUNNER_IMAGE: ubuntu-latest
+    runs-on: ${{ env.RUNNER_IMAGE }}
     steps:
       - name: Checkout Code 🛎
         uses: actions/checkout@v4
@@ -31,6 +38,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: latest
+          cache: 'bun'
 
       - name: Install dependencies 📦
         run: bun install

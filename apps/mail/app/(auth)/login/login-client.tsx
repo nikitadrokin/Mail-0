@@ -1,5 +1,6 @@
 'use client';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect, type ReactNode, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type EnvVarInfo } from '@/lib/auth-providers';
@@ -42,13 +43,22 @@ const getProviderIcon = (providerId: string, className?: string): ReactNode => {
 
     case 'zero':
       return (
-        <Image
-          src="/white-icon.svg"
-          alt="Zero"
-          width={15}
-          height={15}
-          className="mr-2 invert dark:invert-0"
-        />
+        <>
+          <Image
+            src="/white-icon.svg"
+            alt="Zero"
+            width={15}
+            height={15}
+            className="mr-2 hidden dark:block"
+          />
+          <Image
+            src="/black-icon.svg"
+            alt="Zero"
+            width={15}
+            height={15}
+            className="mr-2 block dark:hidden"
+          />
+        </>
       );
     default:
       return null;
@@ -57,7 +67,7 @@ const getProviderIcon = (providerId: string, className?: string): ReactNode => {
 
 function LoginClientContent({ providers, isProd }: LoginClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const { data: session, isPending } = useSession();
   const [expandedProviders, setExpandedProviders] = useState<Record<string, boolean>>({});
 
@@ -65,6 +75,10 @@ function LoginClientContent({ providers, isProd }: LoginClientProps) {
     const error = searchParams.get('error');
     if (error === 'early_access_required') {
       toast.error('Early access is required to log in');
+    }
+
+    if (error === 'unauthorized') {
+      toast.error('Zero could not load your data from the 3rd party provider. Please try again.');
     }
 
     const missing = providers.find((p) => p.required && !p.enabled);
@@ -137,22 +151,10 @@ function LoginClientContent({ providers, isProd }: LoginClientProps) {
   });
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-between">
-      <div className="absolute left-4 top-4 z-10">
-        <Link href="/">
-          <Image
-            src="/white-icon.svg"
-            alt="Zero"
-            width={40}
-            height={40}
-            className="cursor-pointer invert dark:invert-0"
-          />
-        </Link>
-      </div>
-
+    <div className="flex min-h-screen w-full flex-col items-center justify-between bg-[#111111]">
       <div className="animate-in slide-in-from-bottom-4 mx-auto flex max-w-[600px] flex-grow items-center justify-center space-y-8 px-4 duration-500 sm:px-12 md:px-0">
-        <div className="w-full space-y-8">
-          <p className="text-center text-4xl font-bold md:text-5xl">Login to Zero</p>
+        <div className="w-full space-y-4">
+          <p className="text-center text-4xl font-bold text-white md:text-5xl">Login to Zero</p>
 
           {shouldShowDetailedConfig && (
             <div className="rounded-lg border border-black/10 bg-black/5 p-5 dark:border-white/10 dark:bg-white/5">
@@ -336,6 +338,7 @@ function LoginClientContent({ providers, isProd }: LoginClientProps) {
           )}
         </div>
       </div>
+      <Link href={'/'}>Return home</Link>
 
       <footer className="w-full px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-center gap-6">

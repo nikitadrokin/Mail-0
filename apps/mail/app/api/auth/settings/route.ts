@@ -21,14 +21,17 @@ export const GET = async (req: NextRequest) => {
     );
   }
 
+  if (!userId) {
+    return NextResponse.json({ settings: defaultUserSettings }, { status: 200 });
+  }
+
   const [result] = await db
     .select()
     .from(userSettings)
     .where(eq(userSettings.userId, userId))
     .limit(1);
 
-  // Returning null here when there are no settings so we can use the default settings with timezone from the browser
-  if (!result) return NextResponse.json({ settings: defaultUserSettings }, { status: 200 });
+  if (!result) return NextResponse.json({ ...defaultUserSettings }, { status: 200 });
 
   const settings = userSettingsSchema.parse(result.settings);
 

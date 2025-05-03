@@ -7,6 +7,7 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import { emailProviders } from '@/lib/constants';
+import { authClient } from '@/lib/auth-client';
 import { Plus, UserPlus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '../ui/button';
@@ -38,7 +39,10 @@ export const AddConnectionDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="w-full max-w-sm rounded-xl border bg-white p-6 sm:max-w-md dark:bg-[#1A1A1A]"
+        showOverlay={true}
+      >
         <DialogHeader>
           <DialogTitle>{t('pages.settings.connections.connectEmail')}</DialogTitle>
           <DialogDescription>
@@ -52,9 +56,8 @@ export const AddConnectionDialog = ({
           transition={{ duration: 0.3 }}
         >
           {emailProviders.map((provider, index) => (
-            <motion.a
+            <motion.div
               key={provider.name}
-              href={`/api/v1/mail/auth/${provider.providerId}/init`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.3 }}
@@ -64,13 +67,18 @@ export const AddConnectionDialog = ({
               <Button
                 variant="outline"
                 className="h-24 w-full flex-col items-center justify-center gap-2"
+                onClick={async () =>
+                  await authClient.linkSocial({
+                    provider: provider.providerId,
+                  })
+                }
               >
                 <svg viewBox="0 0 24 24" className="h-12 w-12">
                   <path fill="currentColor" d={provider.icon} />
                 </svg>
                 <span className="text-xs">{provider.name}</span>
               </Button>
-            </motion.a>
+            </motion.div>
           ))}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -81,7 +89,7 @@ export const AddConnectionDialog = ({
           >
             <Button
               variant="outline"
-              className="h-24 flex-col items-center justify-center gap-2 border-dashed"
+              className="h-24 w-full flex-col items-center justify-center gap-2 border-dashed"
             >
               <Plus className="h-12 w-12" />
               <span className="text-xs">{t('pages.settings.connections.moreComingSoon')}</span>

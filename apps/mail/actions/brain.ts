@@ -1,24 +1,51 @@
-'use server'
-import { auth } from "@/lib/auth";
-import { db } from "@zero/db";
-import { connection } from "@zero/db/schema";
-import { headers } from "next/headers";
-import { and, eq } from "drizzle-orm";
-import axios from "axios";
-import { getActiveConnection } from "./utils";
+'use server';
+import { getActiveConnection } from './utils';
+import axios from 'axios';
 
-export const EnableBrain = async () => {
-    if (!process.env.BRAIN_URL) {
-        throw new Error('Brain URL not found');
-    }
+export const EnableBrain = async ({
+  connection,
+}: {
+  connection?: { id: string; providerId: string } | null;
+}) => {
+  if (!process.env.BRAIN_URL) {
+    return false;
+  }
+  if (!connection) {
+    connection = await getActiveConnection();
+  }
 
-    const connection = await getActiveConnection()
+  if (!connection?.id) {
+    return false;
+  }
 
-    if (!connection?.accessToken || !connection.refreshToken) {
-        throw new Error("Unauthorized, reconnect");
-    }
-
-    return await axios.put(process.env.BRAIN_URL + `/subscribe/${connection.providerId}`, {
-        connectionId: connection.id,
+  return await axios
+    .put(process.env.BRAIN_URL + `/subscribe/${connection.providerId}`, {
+      connectionId: connection.id,
     })
-}
+    .catch((error) => false)
+    .then(() => true);
+};
+
+export const DisableBrain = async ({
+  connection,
+}: {
+  connection?: { id: string; providerId: string } | null;
+}) => {
+  if (!process.env.BRAIN_URL) {
+    return false;
+  }
+  if (!connection) {
+    connection = await getActiveConnection();
+  }
+
+  if (!connection?.id) {
+    return false;
+  }
+
+  return await axios
+    .put(process.env.BRAIN_URL + `/unsubscribe/${connection.providerId}`, {
+      connectionId: connection.id,
+    })
+    .catch((error) => false)
+    .then(() => true);
+};
