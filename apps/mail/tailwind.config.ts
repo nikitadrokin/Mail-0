@@ -1,7 +1,9 @@
 import { default as flattenColorPalette } from 'tailwindcss/lib/util/flattenColorPalette';
 import sharedConfig from '../../packages/tailwind-config/tailwind.config';
-import * as defaultTheme from 'tailwindcss/defaultTheme';
-import * as animate from 'tailwindcss-animate';
+import defaultTheme from 'tailwindcss/defaultTheme';
+import scrollbar from 'tailwind-scrollbar';
+import animate from 'tailwindcss-animate';
+
 import type { Config } from 'tailwindcss';
 
 export default {
@@ -86,8 +88,28 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['Geist', ...defaultTheme.fontFamily.sans],
-        mono: ['Geist_Mono', ...defaultTheme.fontFamily.mono],
+        sans: [
+          '"Geist Variable"',
+          'Geist',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'system-ui',
+          'sans-serif',
+          ...defaultTheme.fontFamily.sans,
+        ],
+        mono: [
+          '"Geist Mono Variable"',
+          '"Geist Mono"',
+          'ui-monospace',
+          'SFMono-Regular',
+          '"SF Mono"',
+          'Consolas',
+          '"Liberation Mono"',
+          'Menlo',
+          'monospace',
+          ...defaultTheme.fontFamily.mono,
+        ],
       },
       keyframes: {
         'fade-up': {
@@ -148,6 +170,14 @@ export default {
             height: '0',
           },
         },
+        gauge_fadeIn: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        gauge_fill: {
+          from: { 'stroke-dashoffset': '332', opacity: '0' },
+          to: { opacity: '1' },
+        },
       },
       animation: {
         'fade-up': 'fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
@@ -157,6 +187,8 @@ export default {
         'shine-slow': 'shine-slow 8s linear infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        gauge_fadeIn: 'gauge_fadeIn 1s ease forwards',
+        gauge_fill: 'gauge_fill 1s ease forwards',
       },
     },
   },
@@ -166,6 +198,10 @@ export default {
     function ({ matchUtilities, theme }: any) {
       matchUtilities({ values: flattenColorPalette(theme('backgroundColor')), type: 'color' });
     },
+    scrollbar({
+      nocompatible: true,
+      preferredStrategy: 'pseudoelements',
+    }),
   ],
 } satisfies Config;
 

@@ -11,6 +11,7 @@
       "es",
       "fr",
       "hi",
+      "nl",
       "ja",
       "ko",
       "lv",
@@ -27,7 +28,7 @@
   },
   "buckets": {
     "json": {
-      "include": ["apps/mail/locales/[locale].json"]
+      "include": ["apps/mail/messages/[locale].json"]
     }
   }
 }

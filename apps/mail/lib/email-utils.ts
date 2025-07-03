@@ -1,5 +1,5 @@
-import { parseFrom as _parseFrom, parseAddressList as _parseAddressList } from 'email-addresses';
-import { Sender } from '@/types';
+import * as emailAddresses from 'email-addresses';
+import type { Sender } from '@/types';
 import Color from 'color';
 
 export const fixNonReadableColors = (rootElement: HTMLElement, minContrast = 3.5) => {
@@ -19,17 +19,21 @@ export const fixNonReadableColors = (rootElement: HTMLElement, minContrast = 3.5
       continue;
     }
 
-    const textColor = Color(style.color);
-    const effectiveBg = getEffectiveBackgroundColor(el);
+    try {
+      const textColor = Color(style.color);
+      const effectiveBg = getEffectiveBackgroundColor(el);
 
-    const blendedText =
-      textColor.alpha() < 1 ? effectiveBg.mix(textColor, effectiveBg.alpha()) : textColor;
-    const contrast = blendedText.contrast(effectiveBg);
+      const blendedText =
+        textColor.alpha() < 1 ? effectiveBg.mix(textColor, effectiveBg.alpha()) : textColor;
+      const contrast = blendedText.contrast(effectiveBg);
 
-    if (contrast < minContrast) {
-      const blackContrast = Color('#000000').contrast(effectiveBg);
-      const whiteContrast = Color('#ffffff').contrast(effectiveBg);
-      el.style.color = blackContrast >= whiteContrast ? '#000000' : '#ffffff';
+      if (contrast < minContrast) {
+        const blackContrast = Color('#000000').contrast(effectiveBg);
+        const whiteContrast = Color('#ffffff').contrast(effectiveBg);
+        el.style.color = blackContrast >= whiteContrast ? '#000000' : '#ffffff';
+      }
+    } catch (error) {
+      console.error('Error fixing non-readable colors:', error);
     }
   }
 };
@@ -110,7 +114,7 @@ const FALLBACK_SENDER = {
 };
 
 export const parseFrom = (fromHeader: string) => {
-  const parsedSender = _parseFrom(fromHeader);
+  const parsedSender = emailAddresses.parseFrom(fromHeader);
   if (!parsedSender) return FALLBACK_SENDER;
 
   // Technically the "From" header can include multiple email addresses according to
@@ -133,7 +137,7 @@ export const parseFrom = (fromHeader: string) => {
 };
 
 export const parseAddressList = (header: string): Sender[] => {
-  const parsedAddressList = _parseAddressList(header);
+  const parsedAddressList = emailAddresses.parseAddressList(header);
   if (!parsedAddressList) return [FALLBACK_SENDER];
 
   return parsedAddressList?.flatMap((address) => {
@@ -149,6 +153,35 @@ export const parseAddressList = (header: string): Sender[] => {
       email: address.address || FALLBACK_SENDER.email,
     };
   });
+};
+
+// Helper function to clean email addresses by removing angle brackets
+export const cleanEmailAddresses = (emails: string | undefined) => {
+  if (!emails || emails.trim() === '') return undefined;
+  // Split by commas and clean each address individually
+  return emails
+    .split(',')
+    .map((email) => email.trim().replace(/^<|>$/g, ''))
+    .filter(Boolean); // Remove any empty entries
+};
+
+// Format recipients for display or sending
+export const formatRecipients = (recipients: string[] | undefined) => {
+  if (!recipients || recipients.length === 0) return undefined;
+  return recipients.join(', ');
+};
+
+/**
+ * Format recipients for MIME message creation
+ * Handles both string and array formats for recipients
+ */
+export const formatMimeRecipients = (recipients: string | string[]) => {
+  if (Array.isArray(recipients)) {
+    return recipients.map((recipient) => ({ addr: recipient }));
+  } else if (typeof recipients === 'string' && recipients.trim() !== '') {
+    return recipients.split(',').map((recipient) => ({ addr: recipient.trim() }));
+  }
+  return null;
 };
 
 export const wasSentWithTLS = (receivedHeaders: string[]) => {
